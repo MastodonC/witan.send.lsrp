@@ -5,7 +5,8 @@
             [tablecloth.api :as tc]
             [ham-fisted.reduce :as hf-reduce]
             [tech.v3.datatype.functional :as dfn]
-            [tech.v3.dataset.reductions :as ds-reduce]))
+            [tech.v3.dataset.reductions :as ds-reduce]
+            [clojure.string :as s]))
 
 (def lsrp-calendar-years
   #{2025 2026 2027 2028 2029})
@@ -69,6 +70,11 @@
     "Other arrangements by LA (EOTAS)"
     "Other (including hospital schools where applicable)"})
 
+;; can't write the default setting->lsrp-provision until I resolve which settings translate to which provision and whether I need to consider NCY
+#_(defn setting->lsrp-provision [setting]
+    (cond
+      (s/includes? setting "6FC")
+      ))
 
 (def lsrp-needs
   #{"Autistic Spectrum Disorder"
