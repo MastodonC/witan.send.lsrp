@@ -188,4 +188,10 @@
       (tc/set-dataset-name "5.1 Total number of EHC plans by age group (with estimated future projections)")))
 
 ;; Assumptions:
-;; - Projected values are the median of 1000 simulations
+;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
+
+;; Requirements
+;; - Projection, including the prefix
+;; - Historic transitions file
+;; - Map of LA settings to LSRP "provision"
+;; - Map of LA Primary Needs to LSRP Primary Needs
