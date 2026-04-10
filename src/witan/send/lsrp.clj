@@ -53,6 +53,38 @@
    :age-16-19 "Age 16 to 19"
    :age-20-25 "Age 20 to 25"})
 
+(def lsrp-provision
+  #{"Early Years settings including PVIs"
+    "Mainstream schools or academies"
+    "Support bases in mainstream settings"
+    "Specialist bases in mainstream settings"
+    "Maintained special schools or special academies"
+    "NMSS or independent schools - LA funded placements"
+    "NMSS or independent schools - other suitable arrangements"
+    "Alternative Provision"
+    "Mainstream Post 16 provision"
+    "Mainstream Post 16 specialist provision"
+    "Specialist Post-16 institutions"
+    "Elective Home Education (EHE)"
+    "Other arrangements by LA (EOTAS)"
+    "Other (including hospital schools where applicable)"})
+
+
+(def lsrp-needs
+  #{"Autistic Spectrum Disorder"
+    "Hearing Impairment"
+    "Moderate Learning Difficulty"
+    "Multi- Sensory Impairment"
+    "Physical Disability"
+    "Profound & Multiple Learning Difficulty"
+    "Social, Emotional and Mental Health"
+    "Speech, Language and Communications needs"
+    "Severe Learning Difficulty"
+    "Specific Learning Difficulty"
+    "Visual Impairment"
+    "Other Difficulty/Disability"
+    "SEN support but no specialist assessment of type of need"})
+
 (defn summarise
   [simulation-results
    {:keys [historic-transitions-count simulation-count domain-key
