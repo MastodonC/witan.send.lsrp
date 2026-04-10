@@ -1,0 +1,21 @@
+{:paths ["src" "resources"]
+ :deps  {org.clojure/clojure                        {:mvn/version "1.12.3"}
+         org.clojure/core.async                     {:mvn/version "1.6.681"}
+         techascent/tech.ml.dataset                 {:mvn/version "7.067"}
+         scicloj/tablecloth                         {:mvn/version "7.067"}
+         org.scicloj/metamorph.ml                   {:mvn/version "1.3.2"}
+         net.cgrand/xforms                          {:mvn/version "0.19.4"}
+         generateme/fastmath                        {:mvn/version "2.4.0"}
+         com.github.MastodonC/kixi.large            {:git/sha "bda0812f692b8521e8273ff8c7754499ee834b5e"}
+         com.github.mastodonc/witan.send.adroddiad  {:git/sha "dd11e7f09d5263134b65ad3185f31899a11a1330"}
+         com.github.mastodonc/witan.population      {:git/sha "b7c75b7e41406c6e56fa5ce4cec025a917100612"}}
+ :aliases
+ {:jdk-17 {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"
+                      "-Xlog:gc*:gc.log"
+                      "-XX:+UseZGC"
+                      "--add-modules" "jdk.incubator.foreign,jdk.incubator.vector"
+                      "--enable-native-access=ALL-UNNAMED"]}
+  :dev    {:extra-paths ["notebooks" "dev"]
+           :extra-deps  {}}
+  :test   {:extra-paths ["test"]
+           :extra-deps  {org.clojure/test.check {:mvn/version "1.1.0"}}}}}
