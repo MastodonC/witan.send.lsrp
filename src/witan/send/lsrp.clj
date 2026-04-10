@@ -85,6 +85,21 @@
     "Other Difficulty/Disability"
     "SEN support but no specialist assessment of type of need"})
 
+(defn need->lsrp-need [need]
+  {"ASD" "Autistic Spectrum Disorder"
+   "HI" "Hearing Impairment"
+   "MLD" "Moderate Learning Difficulty"
+   "MSI" "Multi- Sensory Impairment"
+   "PD" "Physical Disability"
+   "PMLD" "Profound & Multiple Learning Difficulty"
+   "SEMH" "Social, Emotional and Mental Health"
+   "SLCN" "Speech, Language and Communications needs"
+   "SLD" "Severe Learning Difficulty"
+   "SPLD" "Specific Learning Difficulty"
+   "VI" "Visual Impairment"
+   "OTH" "Other Difficulty/Disability"
+   nil "SEN support but no specialist assessment of type of need"})
+
 (defn summarise
   [simulation-results
    {:keys [historic-transitions-count simulation-count domain-key
