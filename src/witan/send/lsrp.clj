@@ -71,10 +71,41 @@
     "Other (including hospital schools where applicable)"})
 
 ;; can't write the default setting->lsrp-provision until I resolve which settings translate to which provision and whether I need to consider NCY
-#_(defn setting->lsrp-provision [setting]
-    (cond
-      (s/includes? setting "6FC")
-      ))
+(defn setting->lsrp-provision [setting ncy]
+  (cond
+    (#{"AP"} setting)
+    "Alternative Provision"
+    (#{"EHE"} setting)
+    "Elective Home Education (EHE)"
+    (#{"EOTAS"} setting)
+    "Other arrangements by LA (EOTAS)"
+    (#{"EYP"} setting)
+    "Early Years settings including PVIs"
+    (#{"MsIn"} setting)
+    "NMSS or independent schools - LA funded placements" ;; assumed LA funded not "NMSS or independent schools - other suitable arrangements"
+    (s/includes? setting "SpIn")
+    "NMSS or independent schools - LA funded placements" ;; assumed LA funded not "NMSS or independent schools - other suitable arrangements"
+    (s/includes? setting "SpNm")
+    "NMSS or independent schools - LA funded placements" ;; assumed LA funded not "NMSS or independent schools - other suitable arrangements"
+    (and (s/includes? setting "MsMdA")
+         ((into (sorted-set) (range 0 12)) ncy))
+    "Mainstream schools or academies"
+    (and (s/includes? setting "MsMdA")
+         (<= 12 ncy))
+    "Mainstream Post 16 provision"
+    (#{"6FC" "GFE"} setting)
+    "Mainstream Post 16 provision"
+    (#{"NEET" "NIEC" "NIEO" "OPA"} setting)
+    "Other (including hospital schools where applicable)"
+    (s/includes? setting "RP")
+    "Specialist bases in mainstream settings" ;; assummed LA funded not "Support bases in mainstream settings"
+    (s/includes? setting "SENU")
+    "Specialist bases in mainstream settings" ;; assummed LA funded not "Support bases in mainstream settings"
+    (#{"SP16"} setting)
+    "Specialist Post-16 institutions"
+    (s/includes? setting "SpMdA")
+    "Maintained special schools or special academies" ;; don't understand where "Mainstream Post 16 specialist provision" should go
+    ))
 
 (def lsrp-needs
   ["Autistic Spectrum Disorder"
