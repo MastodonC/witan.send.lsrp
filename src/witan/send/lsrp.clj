@@ -242,6 +242,40 @@
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
               :transform-simulation-f transform-need-simulation}))
 
+(defn transform-need-provision-simulation
+  [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count
+               provision]}]
+  (let [census (-> (tc/concat-copying historic-transitions-count sim)
+                   (tr/transitions->census))
+        denominator (-> census
+                        (tc/group-by denominator-grouping-keys)
+                        (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
+    (as-> census $
+      (tc/map-columns $ :provision [:setting :academic-year]
+                      (fn [setting ncy] (setting->lsrp-provision setting ncy)))
+      (tc/select-rows $ #(#{provision} (:provision %)))
+      (tc/map-columns $ :need [:need]
+                      (fn [need] (need->lsrp-need need)))
+      (tc/group-by $ numerator-grouping-keys)
+      (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
+      (tc/group-by $ :need {:result-type :as-seq})
+      (map #(td/add-diff % :transition-count) $)
+      (apply tc/concat $)
+      (tc/rename-columns $
+                         {:diff :ehcp-diff
+                          :pct-diff :ehcp-pct-diff})
+      (tc/inner-join $ denominator denominator-grouping-keys)
+      (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
+      (tc/order-by $ numerator-grouping-keys))))
+
+(defn early-years-need-summaries [config-path sim-prefix transitions-path]
+  (summarise (read-simulation-data config-path sim-prefix)
+             {:domain-key :need
+              :provision "Early Years settings including PVIs"
+              :historic-transitions-count (historic-transition-counts transitions-path)
+              :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
+              :transform-simulation-f transform-need-provision-simulation}))
+
 (defn format-5-1 [summary]
   (-> summary
       (tc/select-columns [:calendar-year :age-group :median])
