@@ -77,21 +77,21 @@
       ))
 
 (def lsrp-needs
-  #{"Autistic Spectrum Disorder"
-    "Hearing Impairment"
-    "Moderate Learning Difficulty"
-    "Multi- Sensory Impairment"
-    "Physical Disability"
-    "Profound & Multiple Learning Difficulty"
-    "Social, Emotional and Mental Health"
-    "Speech, Language and Communications needs"
-    "Severe Learning Difficulty"
-    "Specific Learning Difficulty"
-    "Visual Impairment"
-    "Other Difficulty/Disability"
-    "SEN support but no specialist assessment of type of need"})
+  ["Autistic Spectrum Disorder"
+   "Hearing Impairment"
+   "Moderate Learning Difficulty"
+   "Multi- Sensory Impairment"
+   "Physical Disability"
+   "Profound & Multiple Learning Difficulty"
+   "Social, Emotional and Mental Health"
+   "Speech, Language and Communications needs"
+   "Severe Learning Difficulty"
+   "Specific Learning Difficulty"
+   "Visual Impairment"
+   "Other Difficulty/Disability"
+   "SEN support but no specialist assessment of type of need"])
 
-(defn need->lsrp-need [need]
+(def need->lsrp-need
   {"ASD" "Autistic Spectrum Disorder"
    "HI" "Hearing Impairment"
    "MLD" "Moderate Learning Difficulty"
