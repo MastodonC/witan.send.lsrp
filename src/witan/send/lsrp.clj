@@ -182,6 +182,35 @@
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
               :transform-simulation-f transform-age-group-simulation}))
 
+(defn transform-need-simulation
+  [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count]}]
+  (let [census (-> (tc/concat-copying historic-transitions-count sim)
+                   (tr/transitions->census))
+        denominator (-> census
+                        (tc/group-by denominator-grouping-keys)
+                        (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
+    (as-> census $
+      (tc/map-columns $ :need [:need]
+                      (fn [need] (need->lsrp-need need)))
+      (tc/group-by $ numerator-grouping-keys)
+      (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
+      (tc/group-by $ :need {:result-type :as-seq})
+      (map #(td/add-diff % :transition-count) $)
+      (apply tc/concat $)
+      (tc/rename-columns $
+                         {:diff :ehcp-diff
+                          :pct-diff :ehcp-pct-diff})
+      (tc/inner-join $ denominator denominator-grouping-keys)
+      (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
+      (tc/order-by $ numerator-grouping-keys))))
+
+(defn need-summaries [config-path sim-prefix transitions-path]
+  (summarise (read-simulation-data config-path sim-prefix)
+             {:domain-key :need
+              :historic-transitions-count (historic-transition-counts transitions-path)
+              :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
+              :transform-simulation-f transform-need-simulation}))
+
 (defn format-5-1 [summary]
   (-> summary
       (tc/select-columns [:calendar-year :age-group :median])
@@ -192,6 +221,17 @@
                                         (range 1 (+ 1 (count lsrp-age-group-names))))) :age-group)])
       (tc/rename-columns {:age-group "Calendar Year"})
       (tc/set-dataset-name "5.1 Total number of EHC plans by age group (with estimated future projections)")))
+
+(defn format-7 [summary]
+  (-> summary
+      (tc/select-columns [:calendar-year :need :median])
+      (tc/select-rows #(lsrp-calendar-years (:calendar-year %)))
+      (tc/pivot->wider :calendar-year :median)
+      (tc/order-by [(comp (into {} (map (fn [k v] (assoc {} k v))
+                                        lsrp-needs
+                                        (range 1 (+ 1 (count lsrp-needs))))) :need)])
+      (tc/rename-columns {:need "Calendar Year"})
+      (tc/set-dataset-name "7. Current and projected number of all CYP with EHC plans by primary need")))
 
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
