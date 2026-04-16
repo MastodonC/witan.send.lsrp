@@ -308,6 +308,20 @@
       (tc/rename-columns {:need "Calendar Year"})
       (tc/set-dataset-name "7. Current and projected number of all CYP with EHC plans by primary need")))
 
+(defn format-7-1 [summary]
+  (-> summary
+      (tc/select-columns [:calendar-year :need :median])
+      (tc/select-rows #(lsrp-calendar-years (:calendar-year %)))
+      (tc/pivot->wider :calendar-year :median)
+      (tc/replace-missing :all :value 0.0)
+      (tc/union (->empty-ds lsrp-needs :need))
+      (tc/unique-by :need)
+      (tc/order-by [(comp (into {} (map (fn [k v] (assoc {} k v))
+                                        lsrp-needs
+                                        (range 1 (+ 1 (count lsrp-needs))))) :need)])
+      (tc/rename-columns {:need "Calendar Year"})
+      (tc/set-dataset-name "7.1 Current and projected number of all CYP with EHC plans in Early Years Settings including PVIs by primary need")))
+
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
 
