@@ -137,6 +137,10 @@
    "OTH" "Other Difficulty/Disability"
    nil "SEN support but no specialist assessment of type of need"})
 
+(defn ->empty-ds [domains key]
+  (tc/dataset
+   (map (fn [v] (assoc (reduce (fn [m k] (assoc m k 0.0)) {} lsrp-calendar-years) key v)) domains)))
+
 (defn summarise
   [simulation-results
    {:keys [historic-transitions-count simulation-count domain-key
@@ -281,6 +285,9 @@
       (tc/select-columns [:calendar-year :age-group :median])
       (tc/select-rows #(lsrp-calendar-years (:calendar-year %)))
       (tc/pivot->wider :calendar-year :median)
+      (tc/replace-missing :all :value 0.0)
+      (tc/union (->empty-ds (vals lsrp-age-group-names) :age-group))
+      (tc/unique-by :age-group)
       (tc/order-by [(comp (into {} (map (fn [k v] (assoc {} k v))
                                         (vals lsrp-age-group-names)
                                         (range 1 (+ 1 (count lsrp-age-group-names))))) :age-group)])
@@ -292,6 +299,9 @@
       (tc/select-columns [:calendar-year :need :median])
       (tc/select-rows #(lsrp-calendar-years (:calendar-year %)))
       (tc/pivot->wider :calendar-year :median)
+      (tc/replace-missing :all :value 0.0)
+      (tc/union (->empty-ds lsrp-needs :need))
+      (tc/unique-by :need)
       (tc/order-by [(comp (into {} (map (fn [k v] (assoc {} k v))
                                         lsrp-needs
                                         (range 1 (+ 1 (count lsrp-needs))))) :need)])
