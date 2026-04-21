@@ -92,9 +92,9 @@
     (#{"NEET" "NIEC" "NIEO" "OPA"} setting)
     "Other (including hospital schools where applicable)"
     (s/includes? setting "RP")
-    "Specialist bases in mainstream settings" ;; assummed LA funded not "Support bases in mainstream settings"
+    "Specialist bases in mainstream settings"
     (s/includes? setting "SENU")
-    "Specialist bases in mainstream settings" ;; assummed LA funded not "Support bases in mainstream settings"
+    "Specialist bases in mainstream settings"
     (#{"SP16"} setting)
     "Specialist Post-16 institutions"
     (s/includes? setting "SpMdA")
