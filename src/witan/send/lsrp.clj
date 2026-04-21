@@ -178,7 +178,7 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn early-years-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn need-provision-summaries [{:keys [config-path sim-prefix transitions-path provision]}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :need
               :provision (if (set? provision)
@@ -188,13 +188,18 @@
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
               :transform-simulation-f transform-need-provision-simulation}))
 
+(defn early-years-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+  (need-provision-summaries {:config-path config-path
+                             :sim-prefix sim-prefix
+                             :transitions-path transitions-path
+                             :provision "Early Years settings including PVIs"}))
+
 (defn mainstream-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
-  (summarise (read-simulation-data config-path sim-prefix)
-             {:domain-key :need
-              :provision "Mainstream schools or academies"
-              :historic-transitions-count (historic-transition-counts transitions-path)
-              :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
-              :transform-simulation-f transform-need-provision-simulation}))
+  (need-provision-summaries {:config-path config-path
+                             :sim-prefix sim-prefix
+                             :transitions-path transitions-path
+                             :provision "Mainstream schools or academies"}))
+
 
 (defn format-5-1 [summary]
   (-> summary
