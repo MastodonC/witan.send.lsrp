@@ -81,13 +81,11 @@
     "NMSS or independent schools - LA funded placements"
     (s/includes? setting "SpNm")
     "NMSS or independent schools - LA funded placements"
-    (and (s/includes? setting "MsMdA")
-         ((into (sorted-set) (range 0 12)) ncy))
+    (s/includes? setting "MsMdA")
     "Mainstream schools or academies"
-    (and (s/includes? setting "MsMdA")
-         (<= 12 ncy))
-    "Mainstream Post 16 provision"
-    (#{"6FC" "GFE"} setting)
+    (#{"6FC"} setting)
+    "Mainstream schools or academies"
+    (#{"GFE"} setting)
     "Mainstream Post 16 provision"
     (#{"NEET" "NIEC" "NIEO" "OPA"} setting)
     "Other (including hospital schools where applicable)"
