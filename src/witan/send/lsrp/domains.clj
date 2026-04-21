@@ -89,15 +89,22 @@
     "Mainstream Post 16 provision"
     (#{"NEET" "NIEC" "NIEO" "OPA"} setting)
     "Other (including hospital schools where applicable)"
-    (s/includes? setting "RP")
+    (and (s/includes? setting "RP")
+         (>= 12 ncy))
     "Specialist bases in mainstream settings"
-    (s/includes? setting "SENU")
+    (and (s/includes? setting "SENU")
+         (>= 12 ncy))
     "Specialist bases in mainstream settings"
+    (and (s/includes? setting "SENU")
+         (<= 12 ncy))
+    "Mainstream Post 16 specialist provision"
+    (and (s/includes? setting "RP")
+         (<= 12 ncy))
+    "Mainstream Post 16 specialist provision"
     (#{"SP16"} setting)
     "Specialist Post-16 institutions"
     (s/includes? setting "SpMdA")
-    "Maintained special schools or special academies" ;; don't understand where "Mainstream Post 16 specialist provision" should go
-    ))
+    "Maintained special schools or special academies"))
 
 ;; Primary needs
 
