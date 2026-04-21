@@ -14,9 +14,6 @@
 (defn historic-transition-counts [transitions-path]
   (td/historic-ehcp-count (tc/dataset transitions-path {:key-fn keyword})))
 
-;; 5. Current and projected number of all CYP with EHC plans or receiving top ups by age
-;; 5.1 Total number of EHC plans by age group (with estimated future projections)
-
 (defn ->empty-ds [domains key]
   (tc/dataset
    (map (fn [v] (assoc (reduce (fn [m k] (assoc m k 0.0)) {} dom/lsrp-calendar-years) key v)) domains)))
