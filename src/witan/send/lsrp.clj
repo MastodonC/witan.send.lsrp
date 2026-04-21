@@ -6,7 +6,8 @@
             [tablecloth.api :as tc]
             [ham-fisted.reduce :as hf-reduce]
             [tech.v3.datatype.functional :as dfn]
-            [tech.v3.dataset.reductions :as ds-reduce]))
+            [tech.v3.dataset.reductions :as ds-reduce]
+            [clojure.string :as s]))
 
 (defn read-simulation-data [config-path sim-prefix]
   (td/simulation-data-from-config config-path sim-prefix))
@@ -162,7 +163,9 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :provision [:setting :academic-year]
-                      (fn [setting ncy] (dom/setting->lsrp-provision setting ncy)))
+                      (fn [setting ncy] (if (s/includes? setting "Hsp")
+                                          "Hospital School"
+                                          (dom/setting->lsrp-provision setting ncy))))
       (tc/select-rows $ #(provision (:provision %)))
       (tc/map-columns $ :need [:need]
                       (fn [need] (dom/need->lsrp-need need)))
