@@ -94,6 +94,35 @@
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
               :transform-simulation-f transform-age-group-simulation}))
 
+(defn transform-provision-simulation
+  [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count]}]
+  (let [census (-> (tc/concat-copying historic-transitions-count sim)
+                   (tr/transitions->census))
+        denominator (-> census
+                        (tc/group-by denominator-grouping-keys)
+                        (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
+    (as-> census $
+      (tc/map-columns $ :provision [:setting :academic-year]
+                      (fn [setting ncy] (dom/setting->lsrp-provision setting ncy)))
+      (tc/group-by $ numerator-grouping-keys)
+      (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
+      (tc/group-by $ :provision {:result-type :as-seq})
+      (map #(td/add-diff % :transition-count) $)
+      (apply tc/concat $)
+      (tc/rename-columns $
+                         {:diff :ehcp-diff
+                          :pct-diff :ehcp-pct-diff})
+      (tc/inner-join $ denominator denominator-grouping-keys)
+      (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
+      (tc/order-by $ numerator-grouping-keys))))
+
+(defn provision-summaries [{:keys [config-path sim-prefix transitions-path]}]
+  (summarise (read-simulation-data config-path sim-prefix)
+             {:domain-key :provision
+              :historic-transitions-count (historic-transition-counts transitions-path)
+              :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
+              :transform-simulation-f transform-provision-simulation}))
+
 (defn transform-need-simulation
   [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count]}]
   (let [census (-> (tc/concat-copying historic-transitions-count sim)
@@ -170,6 +199,20 @@
                                         (range 1 (+ 1 (count dom/lsrp-age-group-names))))) :age-group)])
       (tc/rename-columns {:age-group "Calendar Year"})
       (tc/set-dataset-name "5.1 Total number of EHC plans by age group (with estimated future projections)")))
+
+(defn format-6 [summary]
+  (-> summary
+      (tc/select-columns [:calendar-year :provision :median])
+      (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
+      (tc/pivot->wider :calendar-year :median)
+      (tc/replace-missing :all :value 0.0)
+      (tc/union (->empty-ds dom/lsrp-provision :provision))
+      (tc/unique-by :provision)
+      (tc/order-by [(comp (into {} (map (fn [k v] (assoc {} k v))
+                                        dom/lsrp-provision
+                                        (range 1 (+ 1 (count dom/lsrp-provision))))) :provision)])
+      (tc/rename-columns {:provision "Calendar Year"})
+      (tc/set-dataset-name "6. Current and projected number of all CYP with EHC plans by provision")))
 
 (defn format-7 [summary]
   (-> summary
