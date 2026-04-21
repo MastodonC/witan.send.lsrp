@@ -181,7 +181,9 @@
 (defn early-years-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :need
-              :provision "Early Years settings including PVIs"
+              :provision (if (set? provision)
+                           provision
+                           #{provision})
               :historic-transitions-count (historic-transition-counts transitions-path)
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
               :transform-simulation-f transform-need-provision-simulation}))
