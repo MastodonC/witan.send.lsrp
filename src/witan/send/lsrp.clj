@@ -2,14 +2,11 @@
   (:require [witan.send.adroddiad.analysis.total-domain :as td]
             [witan.send.adroddiad.transitions :as tr]
             [witan.send :as ws]
+            [witan.send.lsrp.domains :as dom]
             [tablecloth.api :as tc]
             [ham-fisted.reduce :as hf-reduce]
             [tech.v3.datatype.functional :as dfn]
-            [tech.v3.dataset.reductions :as ds-reduce]
-            [clojure.string :as s]))
-
-(def lsrp-calendar-years
-  #{2025 2026 2027 2028 2029})
+            [tech.v3.dataset.reductions :as ds-reduce]))
 
 (defn read-simulation-data [config-path sim-prefix]
   (td/simulation-data-from-config config-path sim-prefix))
@@ -20,126 +17,9 @@
 ;; 5. Current and projected number of all CYP with EHC plans or receiving top ups by age
 ;; 5.1 Total number of EHC plans by age group (with estimated future projections)
 
-(defn inclusive-range [beginning end]
-  (range beginning (inc end)))
-
-(def under-5
-  (into (sorted-set) (inclusive-range -5 1)))
-
-(def age-5-10
-  (into (sorted-set) (inclusive-range 0 5)))
-
-(def age-11-15
-  (into (sorted-set) (inclusive-range 6 10)))
-
-(def age-16-19
-  (into (sorted-set) (inclusive-range 11 14)))
-
-(def age-20-25
-  (into (sorted-set) (inclusive-range 15 20)))
-
-(defn lsrp-age-group [y]
-  (cond
-    (under-5 y)   :under-5
-    (age-5-10 y)  :age-5-10
-    (age-11-15 y) :age-11-15
-    (age-16-19 y) :age-16-19
-    (age-20-25 y) :age-20-25
-    :else :outside-of-send-age))
-
-(def lsrp-age-group-names
-  {:under-5   "Under 5"
-   :age-5-10  "Age 5 to 10"
-   :age-11-15 "Age 11 to 15"
-   :age-16-19 "Age 16 to 19"
-   :age-20-25 "Age 20 to 25"})
-
-(def lsrp-provision
-  #{"Early Years settings including PVIs"
-    "Mainstream schools or academies"
-    "Support bases in mainstream settings"
-    "Specialist bases in mainstream settings"
-    "Maintained special schools or special academies"
-    "NMSS or independent schools - LA funded placements"
-    "NMSS or independent schools - other suitable arrangements"
-    "Alternative Provision"
-    "Mainstream Post 16 provision"
-    "Mainstream Post 16 specialist provision"
-    "Specialist Post-16 institutions"
-    "Elective Home Education (EHE)"
-    "Other arrangements by LA (EOTAS)"
-    "Other (including hospital schools where applicable)"})
-
-;; can't write the default setting->lsrp-provision until I resolve which settings translate to which provision and whether I need to consider NCY
-(defn setting->lsrp-provision [setting ncy]
-  (cond
-    (#{"AP"} setting)
-    "Alternative Provision"
-    (#{"EHE"} setting)
-    "Elective Home Education (EHE)"
-    (#{"EOTAS"} setting)
-    "Other arrangements by LA (EOTAS)"
-    (#{"EYP"} setting)
-    "Early Years settings including PVIs"
-    (#{"MsIn"} setting)
-    "NMSS or independent schools - LA funded placements" ;; assumed LA funded not "NMSS or independent schools - other suitable arrangements"
-    (s/includes? setting "SpIn")
-    "NMSS or independent schools - LA funded placements" ;; assumed LA funded not "NMSS or independent schools - other suitable arrangements"
-    (s/includes? setting "SpNm")
-    "NMSS or independent schools - LA funded placements" ;; assumed LA funded not "NMSS or independent schools - other suitable arrangements"
-    (and (s/includes? setting "MsMdA")
-         ((into (sorted-set) (range 0 12)) ncy))
-    "Mainstream schools or academies"
-    (and (s/includes? setting "MsMdA")
-         (<= 12 ncy))
-    "Mainstream Post 16 provision"
-    (#{"6FC" "GFE"} setting)
-    "Mainstream Post 16 provision"
-    (#{"NEET" "NIEC" "NIEO" "OPA"} setting)
-    "Other (including hospital schools where applicable)"
-    (s/includes? setting "RP")
-    "Specialist bases in mainstream settings" ;; assummed LA funded not "Support bases in mainstream settings"
-    (s/includes? setting "SENU")
-    "Specialist bases in mainstream settings" ;; assummed LA funded not "Support bases in mainstream settings"
-    (#{"SP16"} setting)
-    "Specialist Post-16 institutions"
-    (s/includes? setting "SpMdA")
-    "Maintained special schools or special academies" ;; don't understand where "Mainstream Post 16 specialist provision" should go
-    ))
-
-(def lsrp-needs
-  ["Autistic Spectrum Disorder"
-   "Hearing Impairment"
-   "Moderate Learning Difficulty"
-   "Multi- Sensory Impairment"
-   "Physical Disability"
-   "Profound & Multiple Learning Difficulty"
-   "Social, Emotional and Mental Health"
-   "Speech, Language and Communications needs"
-   "Severe Learning Difficulty"
-   "Specific Learning Difficulty"
-   "Visual Impairment"
-   "Other Difficulty/Disability"
-   "SEN support but no specialist assessment of type of need"])
-
-(def need->lsrp-need
-  {"ASD" "Autistic Spectrum Disorder"
-   "HI" "Hearing Impairment"
-   "MLD" "Moderate Learning Difficulty"
-   "MSI" "Multi- Sensory Impairment"
-   "PD" "Physical Disability"
-   "PMLD" "Profound & Multiple Learning Difficulty"
-   "SEMH" "Social, Emotional and Mental Health"
-   "SLCN" "Speech, Language and Communications needs"
-   "SLD" "Severe Learning Difficulty"
-   "SPLD" "Specific Learning Difficulty"
-   "VI" "Visual Impairment"
-   "OTH" "Other Difficulty/Disability"
-   nil "SEN support but no specialist assessment of type of need"})
-
 (defn ->empty-ds [domains key]
   (tc/dataset
-   (map (fn [v] (assoc (reduce (fn [m k] (assoc m k 0.0)) {} lsrp-calendar-years) key v)) domains)))
+   (map (fn [v] (assoc (reduce (fn [m k] (assoc m k 0.0)) {} dom/lsrp-calendar-years) key v)) domains)))
 
 (defn summarise
   [simulation-results
@@ -196,8 +76,8 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :age-group [:academic-year]
-                      (fn [ncy] (lsrp-age-group-names
-                                 (lsrp-age-group ncy))))
+                      (fn [ncy] (dom/lsrp-age-group-names
+                                 (dom/lsrp-age-group ncy))))
       (tc/group-by $ numerator-grouping-keys)
       (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
       (tc/group-by $ :age-group {:result-type :as-seq})
@@ -226,7 +106,7 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :need [:need]
-                      (fn [need] (need->lsrp-need need)))
+                      (fn [need] (dom/need->lsrp-need need)))
       (tc/group-by $ numerator-grouping-keys)
       (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
       (tc/group-by $ :need {:result-type :as-seq})
@@ -256,10 +136,10 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :provision [:setting :academic-year]
-                      (fn [setting ncy] (setting->lsrp-provision setting ncy)))
+                      (fn [setting ncy] (dom/setting->lsrp-provision setting ncy)))
       (tc/select-rows $ #(#{provision} (:provision %)))
       (tc/map-columns $ :need [:need]
-                      (fn [need] (need->lsrp-need need)))
+                      (fn [need] (dom/need->lsrp-need need)))
       (tc/group-by $ numerator-grouping-keys)
       (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
       (tc/group-by $ :need {:result-type :as-seq})
@@ -283,42 +163,42 @@
 (defn format-5-1 [summary]
   (-> summary
       (tc/select-columns [:calendar-year :age-group :median])
-      (tc/select-rows #(lsrp-calendar-years (:calendar-year %)))
+      (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
-      (tc/union (->empty-ds (vals lsrp-age-group-names) :age-group))
+      (tc/union (->empty-ds (vals dom/lsrp-age-group-names) :age-group))
       (tc/unique-by :age-group)
       (tc/order-by [(comp (into {} (map (fn [k v] (assoc {} k v))
-                                        (vals lsrp-age-group-names)
-                                        (range 1 (+ 1 (count lsrp-age-group-names))))) :age-group)])
+                                        (vals dom/lsrp-age-group-names)
+                                        (range 1 (+ 1 (count dom/lsrp-age-group-names))))) :age-group)])
       (tc/rename-columns {:age-group "Calendar Year"})
       (tc/set-dataset-name "5.1 Total number of EHC plans by age group (with estimated future projections)")))
 
 (defn format-7 [summary]
   (-> summary
       (tc/select-columns [:calendar-year :need :median])
-      (tc/select-rows #(lsrp-calendar-years (:calendar-year %)))
+      (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
-      (tc/union (->empty-ds lsrp-needs :need))
+      (tc/union (->empty-ds dom/lsrp-needs :need))
       (tc/unique-by :need)
       (tc/order-by [(comp (into {} (map (fn [k v] (assoc {} k v))
-                                        lsrp-needs
-                                        (range 1 (+ 1 (count lsrp-needs))))) :need)])
+                                        dom/lsrp-needs
+                                        (range 1 (+ 1 (count dom/lsrp-needs))))) :need)])
       (tc/rename-columns {:need "Calendar Year"})
       (tc/set-dataset-name "7. Current and projected number of all CYP with EHC plans by primary need")))
 
 (defn format-7-1 [summary]
   (-> summary
       (tc/select-columns [:calendar-year :need :median])
-      (tc/select-rows #(lsrp-calendar-years (:calendar-year %)))
+      (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
-      (tc/union (->empty-ds lsrp-needs :need))
+      (tc/union (->empty-ds dom/lsrp-needs :need))
       (tc/unique-by :need)
       (tc/order-by [(comp (into {} (map (fn [k v] (assoc {} k v))
-                                        lsrp-needs
-                                        (range 1 (+ 1 (count lsrp-needs))))) :need)])
+                                        dom/lsrp-needs
+                                        (range 1 (+ 1 (count dom/lsrp-needs))))) :need)])
       (tc/rename-columns {:need "Calendar Year"})
       (tc/set-dataset-name "7.1 Current and projected number of all CYP with EHC plans in Early Years Settings including PVIs by primary need")))
 
