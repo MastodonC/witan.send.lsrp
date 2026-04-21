@@ -76,11 +76,11 @@
     (#{"EYP"} setting)
     "Early Years settings including PVIs"
     (#{"MsIn"} setting)
-    "NMSS or independent schools - LA funded placements" ;; assumed LA funded not "NMSS or independent schools - other suitable arrangements"
+    "NMSS or independent schools - LA funded placements"
     (s/includes? setting "SpIn")
-    "NMSS or independent schools - LA funded placements" ;; assumed LA funded not "NMSS or independent schools - other suitable arrangements"
+    "NMSS or independent schools - LA funded placements"
     (s/includes? setting "SpNm")
-    "NMSS or independent schools - LA funded placements" ;; assumed LA funded not "NMSS or independent schools - other suitable arrangements"
+    "NMSS or independent schools - LA funded placements"
     (and (s/includes? setting "MsMdA")
          ((into (sorted-set) (range 0 12)) ncy))
     "Mainstream schools or academies"
