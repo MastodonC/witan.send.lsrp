@@ -64,7 +64,6 @@
    "Other arrangements by LA (EOTAS)"
    "Other (including hospital schools where applicable)"])
 
-;; can't write the default setting->lsrp-provision until I resolve which settings translate to which provision and whether I need to consider NCY
 (defn setting->lsrp-provision [setting ncy]
   (cond
     (#{"AP"} setting)
