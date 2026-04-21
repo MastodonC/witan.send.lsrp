@@ -201,6 +201,39 @@
                              :transitions-path transitions-path
                              :provision "Mainstream schools or academies"}))
 
+(defn specialist-bases-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+  (need-provision-summaries {:config-path config-path
+                             :sim-prefix sim-prefix
+                             :transitions-path transitions-path
+                             :provision "Specialist bases in mainstream settings"}))
+
+(defn maintained-special-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+  (need-provision-summaries {:config-path config-path
+                             :sim-prefix sim-prefix
+                             :transitions-path transitions-path
+                             :provision "Maintained special schools or special academies"}))
+
+(defn nmss-or-independent-schools-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+  (need-provision-summaries {:config-path config-path
+                             :sim-prefix sim-prefix
+                             :transitions-path transitions-path
+                             :provision #{"NMSS or independent schools - LA funded placements"
+                                          "NMSS or independent schools - other suitable arrangements"}}))
+
+(defn ap-or-hospital-schools-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+  (need-provision-summaries {:config-path config-path
+                             :sim-prefix sim-prefix
+                             :transitions-path transitions-path
+                             :provision #{"Alternative Provision"
+                                          "Hospital School"}}))
+
+(defn post-16-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+  (need-provision-summaries {:config-path config-path
+                             :sim-prefix sim-prefix
+                             :transitions-path transitions-path
+                             :provision #{"Mainstream Post 16 provision"
+                                          "Mainstream Post 16 specialist provision"
+                                          "Specialist Post-16 institutions"}}))
 
 (defn format-5-1 [summary]
   (-> summary
@@ -264,12 +297,28 @@
 (defn format-7-2 [summary]
   (format-7-n summary "7.2 Current and projected number of all CYP with EHC plans in Mainstream Schools or Academies (including Support Bases) by primary need"))
 
+(defn format-7-3 [summary]
+  (format-7-n summary "7.3 Current and projected number of all CYP with EHC plans in Specialist Bases by primary need"))
+
+(defn format-7-4 [summary]
+  (format-7-n summary "7.4 Current and projected number of all CYP with EHC plans in Maintained Special Schools or Special Academies by primary need"))
+
+(defn format-7-5 [summary]
+  (format-7-n summary "7.5 Current and projected number of all CYP with EHC plans in Non-Maintained Special Schools or Independent Schools by primary need"))
+
+(defn format-7-6 [summary]
+  (format-7-n summary "7.6 Current and projected number of all CYP with EHC plans in Alternative Provision or Hospital Schools by primary need"))
+
+(defn format-7-7 [summary]
+  (format-7-n summary "7.7 Current and projected number of all CYP with EHC plans in Post-16 (Further Education or Specialist Further Education) Settings by primary need"))
+
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
 
-;; Requirements
+;; ## Requirements
 ;; - Projection, including the prefix
 ;; - Historic transitions file
-;; - Map of LA settings to LSRP "provision"
+;; ## Optional
+;; - Map of LA settings to LSRP provision
 ;; - Map of LA Primary Needs to LSRP Primary Needs
 ;; - unique ID (often person table ID) and assessment outcome from SEN2 assessment dataset
