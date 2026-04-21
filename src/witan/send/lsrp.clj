@@ -312,6 +312,38 @@
 (defn format-7-7 [summary]
   (format-7-n summary "7.7 Current and projected number of all CYP with EHC plans in Post-16 (Further Education or Specialist Further Education) Settings by primary need"))
 
+(defn format-all-tables [{:keys [config-path sim-prefix transitions-path] :as baseline}]
+  {:5.1 (-> baseline
+            age-group-summaries
+            format-5-1)
+   :6.0 (-> baseline
+            provision-summaries
+            format-6)
+   :7.0 (-> baseline
+            need-summaries
+            format-7)
+   :7.1 (-> baseline
+            early-years-need-summaries
+            format-7-1)
+   :7.2 (-> baseline
+            mainstream-need-summaries
+            format-7-2)
+   :7.3 (-> baseline
+            specialist-bases-need-summaries
+            format-7-3)
+   :7.4 (-> baseline
+            maintained-special-need-summaries
+            format-7-4)
+   :7.5 (-> baseline
+            nmss-or-independent-schools-need-summaries
+            format-7-5)
+   :7.6 (-> baseline
+            ap-or-hospital-schools-need-summaries
+            format-7-6)
+   :7.7 (-> baseline
+            post-16-need-summaries
+            format-7-7)})
+
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
 
