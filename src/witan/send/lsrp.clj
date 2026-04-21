@@ -87,7 +87,7 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn age-group-summaries [config-path sim-prefix transitions-path]
+(defn age-group-summaries [{:keys [config-path sim-prefix transitions-path]}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :age-group
               :historic-transitions-count (historic-transition-counts transitions-path)
@@ -116,7 +116,7 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn need-summaries [config-path sim-prefix transitions-path]
+(defn need-summaries [{:keys [config-path sim-prefix transitions-path]}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :need
               :historic-transitions-count (historic-transition-counts transitions-path)
@@ -149,7 +149,7 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn early-years-need-summaries [config-path sim-prefix transitions-path]
+(defn early-years-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :need
               :provision "Early Years settings including PVIs"
