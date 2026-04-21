@@ -186,6 +186,14 @@
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
               :transform-simulation-f transform-need-provision-simulation}))
 
+(defn mainstream-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+  (summarise (read-simulation-data config-path sim-prefix)
+             {:domain-key :need
+              :provision "Mainstream schools or academies"
+              :historic-transitions-count (historic-transition-counts transitions-path)
+              :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
+              :transform-simulation-f transform-need-provision-simulation}))
+
 (defn format-5-1 [summary]
   (-> summary
       (tc/select-columns [:calendar-year :age-group :median])
@@ -245,6 +253,8 @@
 (defn format-7-1 [summary]
   (format-7-n summary "7.1 Current and projected number of all CYP with EHC plans in Early Years Settings including PVIs by primary need"))
 
+(defn format-7-2 [summary]
+  (format-7-n summary "7.2 Current and projected number of all CYP with EHC plans in Mainstream Schools or Academies (including Support Bases) by primary need"))
 
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
