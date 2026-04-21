@@ -49,20 +49,20 @@
 ;; Provision
 
 (def lsrp-provision
-  #{"Early Years settings including PVIs"
-    "Mainstream schools or academies"
-    "Support bases in mainstream settings"
-    "Specialist bases in mainstream settings"
-    "Maintained special schools or special academies"
-    "NMSS or independent schools - LA funded placements"
-    "NMSS or independent schools - other suitable arrangements"
-    "Alternative Provision"
-    "Mainstream Post 16 provision"
-    "Mainstream Post 16 specialist provision"
-    "Specialist Post-16 institutions"
-    "Elective Home Education (EHE)"
-    "Other arrangements by LA (EOTAS)"
-    "Other (including hospital schools where applicable)"})
+  ["Early Years settings including PVIs"
+   "Mainstream schools or academies"
+   "Support bases in mainstream settings"
+   "Specialist bases in mainstream settings"
+   "Maintained special schools or special academies"
+   "NMSS or independent schools - LA funded placements"
+   "NMSS or independent schools - other suitable arrangements"
+   "Alternative Provision"
+   "Mainstream Post 16 provision"
+   "Mainstream Post 16 specialist provision"
+   "Specialist Post-16 institutions"
+   "Elective Home Education (EHE)"
+   "Other arrangements by LA (EOTAS)"
+   "Other (including hospital schools where applicable)"])
 
 ;; can't write the default setting->lsrp-provision until I resolve which settings translate to which provision and whether I need to consider NCY
 (defn setting->lsrp-provision [setting ncy]
