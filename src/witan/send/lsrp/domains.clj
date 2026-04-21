@@ -105,6 +105,11 @@
     (s/includes? setting "SpMdA")
     "Maintained special schools or special academies"))
 
+(defn setting->lsrp-provision-need-categories [setting ncy]
+  (if (s/includes? setting "Hsp")
+    "Hospital School"
+    (setting->lsrp-provision setting ncy)))
+
 ;; Primary needs
 
 (def lsrp-needs

@@ -163,9 +163,7 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :provision [:setting :academic-year]
-                      (fn [setting ncy] (if (s/includes? setting "Hsp")
-                                          "Hospital School"
-                                          (dom/setting->lsrp-provision setting ncy))))
+                      (fn [setting ncy] (dom/setting->lsrp-provision-need-categories setting ncy)))
       (tc/select-rows $ #(provision (:provision %)))
       (tc/map-columns $ :need [:need]
                       (fn [need] (dom/need->lsrp-need need)))
