@@ -17,7 +17,7 @@
 
 (defn ->empty-ds [domains key]
   (tc/dataset
-   (map (fn [v] (assoc (reduce (fn [m k] (assoc m k 0.0)) {} dom/lsrp-calendar-years) key v)) domains)))
+   (map (fn [v] (assoc (reduce (fn [m k] (assoc m k 0.0)) {} (map str dom/lsrp-calendar-years)) key v)) domains)))
 
 (defn summarise
   [simulation-results
