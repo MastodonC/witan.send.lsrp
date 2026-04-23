@@ -16,16 +16,16 @@
   (range beginning (inc end)))
 
 (def under-5
-  (into (sorted-set) (inclusive-range -5 1)))
+  (into (sorted-set) (inclusive-range -5 -1)))
 
 (def age-5-10
-  (into (sorted-set) (inclusive-range 0 5)))
+  (into (sorted-set) (inclusive-range 0 6)))
 
 (def age-11-15
-  (into (sorted-set) (inclusive-range 6 10)))
+  (into (sorted-set) (inclusive-range 7 11)))
 
 (def age-16-19
-  (into (sorted-set) (inclusive-range 11 14)))
+  (into (sorted-set) (inclusive-range 12 14)))
 
 (def age-20-25
   (into (sorted-set) (inclusive-range 15 20)))
