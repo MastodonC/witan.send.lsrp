@@ -96,7 +96,8 @@
               :transform-simulation-f transform-age-group-simulation}))
 
 (defn transform-provision-simulation
-  [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count]}]
+  [sim {:keys [numerator-grouping-keys denominator-grouping-keys
+               historic-transitions-count setting->provision-fn]}]
   (let [census (-> (tc/concat-copying historic-transitions-count sim)
                    (tr/transitions->census))
         denominator (-> census
@@ -104,7 +105,7 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :provision [:setting :academic-year]
-                      (fn [setting ncy] (dom/setting->lsrp-provision setting ncy)))
+                      (fn [setting ncy] (setting->provision-fn setting ncy)))
       (tc/group-by $ numerator-grouping-keys)
       (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
       (tc/group-by $ :provision {:result-type :as-seq})
@@ -117,15 +118,18 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn provision-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn provision-summaries [{:keys [config-path sim-prefix transitions-path setting->provision-fn]
+                            :or {setting->provision-fn dom/setting->lsrp-provision}}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :provision
               :historic-transitions-count (historic-transition-counts transitions-path)
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
-              :transform-simulation-f transform-provision-simulation}))
+              :transform-simulation-f transform-provision-simulation
+              :setting->provision-fn setting->provision-fn}))
 
 (defn transform-need-simulation
-  [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count]}]
+  [sim {:keys [numerator-grouping-keys denominator-grouping-keys
+               historic-transitions-count need->lsrp-need-fn]}]
   (let [census (-> (tc/concat-copying historic-transitions-count sim)
                    (tr/transitions->census))
         denominator (-> census
@@ -133,7 +137,7 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :need [:need]
-                      (fn [need] (dom/need->lsrp-need need)))
+                      (fn [need] (need->lsrp-need-fn need)))
       (tc/group-by $ numerator-grouping-keys)
       (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
       (tc/group-by $ :need {:result-type :as-seq})
@@ -146,16 +150,20 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn need-summaries [{:keys [config-path sim-prefix transitions-path
+                              need->lsrp-need-fn]
+                       :or {need->lsrp-need-fn dom/need->lsrp-need}}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :need
               :historic-transitions-count (historic-transition-counts transitions-path)
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
-              :transform-simulation-f transform-need-simulation}))
+              :transform-simulation-f transform-need-simulation
+              :need->lsrp-need-fn need->lsrp-need-fn}))
 
 (defn transform-need-provision-simulation
   [sim {:keys [numerator-grouping-keys denominator-grouping-keys
-               historic-transitions-count provision]}]
+               historic-transitions-count provision
+               setting->lsrp-provision-need-category-fn need->lsrp-need-fn]}]
   (let [census (-> (tc/concat-copying historic-transitions-count sim)
                    (tr/transitions->census))
         denominator (-> census
@@ -163,10 +171,10 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :provision [:setting :academic-year]
-                      (fn [setting ncy] (dom/setting->lsrp-provision-need-categories setting ncy)))
+                      (fn [setting ncy] (setting->lsrp-provision-need-category-fn setting ncy)))
       (tc/select-rows $ #(provision (:provision %)))
       (tc/map-columns $ :need [:need]
-                      (fn [need] (dom/need->lsrp-need need)))
+                      (fn [need] (need->lsrp-need-fn need)))
       (tc/group-by $ numerator-grouping-keys)
       (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
       (tc/group-by $ :need {:result-type :as-seq})
@@ -179,7 +187,10 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn need-provision-summaries [{:keys [config-path sim-prefix transitions-path provision]}]
+(defn need-provision-summaries [{:keys [config-path sim-prefix transitions-path provision
+                                        setting->lsrp-provision-need-category-fn need->lsrp-need-fn]
+                                 :or {setting->lsrp-provision-need-category-fn dom/setting->lsrp-provision-need-categories
+                                      need->lsrp-need-fn dom/need->lsrp-need}}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :need
               :provision (if (set? provision)
@@ -187,53 +198,91 @@
                            #{provision})
               :historic-transitions-count (historic-transition-counts transitions-path)
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
-              :transform-simulation-f transform-need-provision-simulation}))
+              :transform-simulation-f transform-need-provision-simulation
+              :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
+              :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn early-years-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn early-years-need-summaries [{:keys [config-path sim-prefix transitions-path
+                                          setting->lsrp-provision-need-category-fn
+                                          need->lsrp-need-fn]
+                                   :or {setting->lsrp-provision-need-category-fn dom/setting->lsrp-provision-need-categories
+                                        need->lsrp-need-fn dom/need->lsrp-need}}]
   (need-provision-summaries {:config-path config-path
                              :sim-prefix sim-prefix
                              :transitions-path transitions-path
-                             :provision "Early Years settings including PVIs"}))
+                             :provision "Early Years settings including PVIs"
+                             :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
+                             :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn mainstream-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn mainstream-need-summaries [{:keys [config-path sim-prefix transitions-path
+                                         setting->lsrp-provision-need-category-fn need->lsrp-need-fn]
+                                  :or {setting->lsrp-provision-need-category-fn dom/setting->lsrp-provision-need-categories
+                                       need->lsrp-need-fn dom/need->lsrp-need}}]
   (need-provision-summaries {:config-path config-path
                              :sim-prefix sim-prefix
                              :transitions-path transitions-path
-                             :provision "Mainstream schools or academies"}))
+                             :provision "Mainstream schools or academies"
+                             :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
+                             :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn specialist-bases-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn specialist-bases-need-summaries [{:keys [config-path sim-prefix transitions-path
+                                               setting->lsrp-provision-need-category-fn need->lsrp-need-fn]
+                                        :or {setting->lsrp-provision-need-category-fn dom/setting->lsrp-provision-need-categories
+                                             need->lsrp-need-fn dom/need->lsrp-need}}]
   (need-provision-summaries {:config-path config-path
                              :sim-prefix sim-prefix
                              :transitions-path transitions-path
-                             :provision "Specialist bases in mainstream settings"}))
+                             :provision "Specialist bases in mainstream settings"
+                             :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
+                             :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn maintained-special-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn maintained-special-need-summaries [{:keys [config-path sim-prefix transitions-path
+                                                 setting->lsrp-provision-need-category-fn need->lsrp-need-fn]
+                                          :or {setting->lsrp-provision-need-category-fn dom/setting->lsrp-provision-need-categories
+                                               need->lsrp-need-fn dom/need->lsrp-need}}]
   (need-provision-summaries {:config-path config-path
                              :sim-prefix sim-prefix
                              :transitions-path transitions-path
-                             :provision "Maintained special schools or special academies"}))
+                             :provision "Maintained special schools or special academies"
+                             :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
+                             :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn nmss-or-independent-schools-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn nmss-or-independent-schools-need-summaries [{:keys [config-path sim-prefix transitions-path
+                                                          setting->lsrp-provision-need-category-fn need->lsrp-need-fn]
+                                                   :or {setting->lsrp-provision-need-category-fn dom/setting->lsrp-provision-need-categories
+                                                        need->lsrp-need-fn dom/need->lsrp-need}}]
   (need-provision-summaries {:config-path config-path
                              :sim-prefix sim-prefix
                              :transitions-path transitions-path
                              :provision #{"NMSS or independent schools - LA funded placements"
-                                          "NMSS or independent schools - other suitable arrangements"}}))
+                                          "NMSS or independent schools - other suitable arrangements"}
+                             :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
+                             :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn ap-or-hospital-schools-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn ap-or-hospital-schools-need-summaries [{:keys [config-path sim-prefix transitions-path
+                                                     setting->lsrp-provision-need-category-fn need->lsrp-need-fn]
+                                              :or {setting->lsrp-provision-need-category-fn dom/setting->lsrp-provision-need-categories
+                                                   need->lsrp-need-fn dom/need->lsrp-need}}]
   (need-provision-summaries {:config-path config-path
                              :sim-prefix sim-prefix
                              :transitions-path transitions-path
                              :provision #{"Alternative Provision"
-                                          "Hospital School"}}))
+                                          "Hospital School"}
+                             :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
+                             :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn post-16-need-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn post-16-need-summaries [{:keys [config-path sim-prefix transitions-path
+                                      setting->lsrp-provision-need-category-fn need->lsrp-need-fn]
+                               :or {setting->lsrp-provision-need-category-fn dom/setting->lsrp-provision-need-categories
+                                    need->lsrp-need-fn dom/need->lsrp-need}}]
   (need-provision-summaries {:config-path config-path
                              :sim-prefix sim-prefix
                              :transitions-path transitions-path
                              :provision #{"Mainstream Post 16 provision"
                                           "Mainstream Post 16 specialist provision"
-                                          "Specialist Post-16 institutions"}}))
+                                          "Specialist Post-16 institutions"}
+                             :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
+                             :need->lsrp-need-fn need->lsrp-need-fn}))
 
 (defn format-5-1 [summary]
   (-> summary
@@ -312,7 +361,9 @@
 (defn format-7-7 [summary]
   (format-7-n summary "7.7 Current and projected number of all CYP with EHC plans in Post-16 (Further Education or Specialist Further Education) Settings by primary need"))
 
-(defn format-all-tables [{:keys [config-path sim-prefix transitions-path] :as baseline}]
+(defn format-all-tables [{:keys [config-path sim-prefix transitions-path
+                                 setting->provision-fn need->lsrp-need-fn
+                                 setting->lsrp-provision-need-category-fn] :as baseline}]
   {:5.1 (-> baseline
             age-group-summaries
             format-5-1)
