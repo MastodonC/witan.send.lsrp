@@ -163,7 +163,7 @@
 (defn transform-need-provision-simulation
   [sim {:keys [numerator-grouping-keys denominator-grouping-keys
                historic-transitions-count provision
-               setting->provision-fn need->lsrp-need-fn]}]
+               setting->lsrp-provision-need-category-fn need->lsrp-need-fn]}]
   (let [census (-> (tc/concat-copying historic-transitions-count sim)
                    (tr/transitions->census))
         denominator (-> census
@@ -171,7 +171,7 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :provision [:setting :academic-year]
-                      (fn [setting ncy] (setting->provision-fn setting ncy)))
+                      (fn [setting ncy] (setting->lsrp-provision-need-category-fn setting ncy)))
       (tc/select-rows $ #(provision (:provision %)))
       (tc/map-columns $ :need [:need]
                       (fn [need] (need->lsrp-need-fn need)))
