@@ -288,6 +288,7 @@
   (-> summary
       (tc/select-columns [:calendar-year :age-group :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
+      (tc/map-columns :calendar-year str)
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds (vals dom/lsrp-age-group-names) :age-group))
@@ -302,6 +303,7 @@
   (-> summary
       (tc/select-columns [:calendar-year :provision :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
+      (tc/map-columns :calendar-year str)
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds dom/lsrp-provision :provision))
@@ -316,6 +318,7 @@
   (-> summary
       (tc/select-columns [:calendar-year :need :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
+      (tc/map-columns :calendar-year str)
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds dom/lsrp-needs :need))
@@ -330,6 +333,7 @@
   (-> summary
       (tc/select-columns [:calendar-year :need :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
+      (tc/map-columns :calendar-year str)
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds dom/lsrp-needs :need))
