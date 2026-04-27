@@ -89,11 +89,13 @@
       (tc/order-by $ numerator-grouping-keys))))
 
 (defn age-group-summaries [{:keys [config-path sim-prefix transitions-path]}]
+
+(defn age-group-summaries [{:keys [config-path sim-prefix transitions-path transform-simulation-f]}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :age-group
               :historic-transitions-count (historic-transition-counts transitions-path)
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
-              :transform-simulation-f transform-age-group-simulation}))
+              :transform-simulation-f transform-simulation-f}))
 
 (defn transform-provision-simulation
   [sim {:keys [numerator-grouping-keys denominator-grouping-keys
