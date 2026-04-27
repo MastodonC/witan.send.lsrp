@@ -26,7 +26,7 @@
 (def age-of-birthday-in-school-year->ncy
   (into (sorted-map) (set/map-invert ncy->age-of-birthday-in-school-year)))
 
-(def under-5-by-ncy
+(def under-5
   (into (sorted-set) (#'ncy/inclusive-range (age-of-birthday-in-school-year->ncy 0)
                                             (age-of-birthday-in-school-year->ncy 4))))
 
