@@ -368,6 +368,9 @@
 (defn format-7-7 [summary]
   (format-7-n summary "7.7 Current and projected number of all CYP with EHC plans in Post-16 (Further Education or Specialist Further Education) Settings by primary need"))
 
+(defn format-10 [summary]
+  (format-age-group-output summary "10. Current and projected number of all EHCNA requests by CYP age"))
+
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
                                  setting->lsrp-provision-need-category-fn] :as baseline}]
