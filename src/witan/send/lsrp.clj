@@ -373,37 +373,41 @@
 
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
-                                 setting->lsrp-provision-need-category-fn] :as baseline}]
-  {:5.1 (-> baseline
+                                 setting->lsrp-provision-need-category-fn] :as projection}
+                         {:keys [config-path sim-prefix transitions-path] :as request-projection}]
+  {:5.1 (-> projection
             age-group-summaries
             format-5-1)
-   :6.0 (-> baseline
+   :6.0 (-> projection
             provision-summaries
             format-6)
-   :7.0 (-> baseline
+   :7.0 (-> projection
             need-summaries
             format-7)
-   :7.1 (-> baseline
+   :7.1 (-> projection
             early-years-need-summaries
             format-7-1)
-   :7.2 (-> baseline
+   :7.2 (-> projection
             mainstream-need-summaries
             format-7-2)
-   :7.3 (-> baseline
+   :7.3 (-> projection
             specialist-bases-need-summaries
             format-7-3)
-   :7.4 (-> baseline
+   :7.4 (-> projection
             maintained-special-need-summaries
             format-7-4)
-   :7.5 (-> baseline
+   :7.5 (-> projection
             nmss-or-independent-schools-need-summaries
             format-7-5)
-   :7.6 (-> baseline
+   :7.6 (-> projection
             ap-or-hospital-schools-need-summaries
             format-7-6)
-   :7.7 (-> baseline
+   :7.7 (-> projection
             post-16-need-summaries
-            format-7-7)})
+            format-7-7)
+   :10.0 (-> request-projection
+             age-group-summaries
+             format-10)})
 
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
