@@ -29,13 +29,25 @@
       (tc/add-column :need "NA")))
 
 (defn ->transitions [census-ds]
-  (-> census-ds
-      (tc/add-column :setting-1 "NONSEND") ;; request for assessment
-      (tc/rename-columns {:setting :setting-2
-                          :need :need-1
-                          :academic-year :academic-year-2})
-      (tc/add-column :need-2 "NA")
-      (tc/map-columns :academic-year-1 [:academic-year-2]
-                      (fn [ncy] (dec ncy)))
-      (tc/reorder-columns [:id :calendar-year :setting-1 :need-1 :academic-year-1
-                           :setting-2 :need-2 :academic-year-2])))
+  (let [transitions-n (-> census-ds
+                          (tc/add-columns {:setting-1 "NONSEND"
+                                           :need-1    "NONSEND"}) ;; request for assessment
+                          (tc/rename-columns {:setting :setting-2
+                                              :need :need-2
+                                              :academic-year :academic-year-2})
+                          (tc/map-columns :academic-year-1 [:academic-year-2]
+                                          (fn [ncy] (dec ncy)))
+                          (tc/reorder-columns [:id :calendar-year :setting-1 :need-1
+                                               :academic-year-1 :setting-2 :need-2
+                                               :academic-year-2]))
+        transitions-n+1 (tc/map-rows transitions-n
+                                     (fn [{:keys [calendar-year setting-1 setting-2
+                                                  need-1 need-2 academic-year-1 academic-year-2]}]
+                                       {:calendar-year (inc calendar-year)
+                                        :setting-1 setting-2
+                                        :need-1 need-2
+                                        :academic-year-1 academic-year-2
+                                        :setting-2 "NONSEND"
+                                        :need-2 "NONSEND"
+                                        :academic-year-2 (inc academic-year-2)}))]
+    (tc/concat transitions-n transitions-n+1)))
