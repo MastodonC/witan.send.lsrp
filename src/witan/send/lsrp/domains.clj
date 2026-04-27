@@ -18,7 +18,8 @@
   "Set of national curriculum years (NCY), coded numerically, with
   reception as NCY 0 and earlier NCYs as negative integers.
   This corresponds to the age someone turns in the school year."
-  (into (sorted-set) (inclusive-range -5 20)))
+  (into (sorted-set) (#'ncy/inclusive-range -5 20)))
+;; FIXME update witan.send.adroddiad.ncy so that `inclusive-range` isn't private
 
 (def ncy->age-of-birthday-in-school-year
   (apply sorted-map (interleave ncys (map #(+ % 5) ncys))))
@@ -26,7 +27,7 @@
 (def age-of-birthday-in-school-year->ncy
   (into (sorted-map) (set/map-invert ncy->age-of-birthday-in-school-year)))
 
-(def under-5-by-ncy
+(def under-5
   (into (sorted-set) (#'ncy/inclusive-range (age-of-birthday-in-school-year->ncy 0)
                                             (age-of-birthday-in-school-year->ncy 4))))
 
