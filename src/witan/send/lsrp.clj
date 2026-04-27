@@ -17,7 +17,7 @@
 
 (defn ->empty-ds [domains key]
   (tc/dataset
-   (map (fn [v] (assoc (reduce (fn [m k] (assoc m k 0.0)) {} dom/lsrp-calendar-years) key v)) domains)))
+   (map (fn [v] (assoc (reduce (fn [m k] (assoc m k 0.0)) {} (map str dom/lsrp-calendar-years)) key v)) domains)))
 
 (defn summarise
   [simulation-results
@@ -288,6 +288,7 @@
   (-> summary
       (tc/select-columns [:calendar-year :age-group :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
+      (tc/map-columns :calendar-year str)
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds (vals dom/lsrp-age-group-names) :age-group))
@@ -302,6 +303,7 @@
   (-> summary
       (tc/select-columns [:calendar-year :provision :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
+      (tc/map-columns :calendar-year str)
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds dom/lsrp-provision :provision))
@@ -316,6 +318,7 @@
   (-> summary
       (tc/select-columns [:calendar-year :need :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
+      (tc/map-columns :calendar-year str)
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds dom/lsrp-needs :need))
@@ -330,6 +333,7 @@
   (-> summary
       (tc/select-columns [:calendar-year :need :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
+      (tc/map-columns :calendar-year str)
       (tc/pivot->wider :calendar-year :median)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds dom/lsrp-needs :need))
@@ -397,6 +401,10 @@
 
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
+;; - Census counts and projections are based on the Spring school census date according to that calendar year, typically falling on the third Thursday of January
+;; - We are making the assumption that the \"actual number for 2025 calendar year\" refers to the total count of EHCPs at the end of said calendar year (i.e. the January census date for the next calendar year), thus we must produce counts corrseponding to the calendar year minus one
+;;  - Projections are modelled using the historic transition rates of need/setting/NCY combinations derived from SEN2 returns and the background EHCP-eligible population (0-25 year olds), derived from the ONS subnational population projections and mid-year estimates, as a means of calculating the rate of new EHCPs
+
 
 ;; ## Requirements
 ;; - Projection, including the prefix

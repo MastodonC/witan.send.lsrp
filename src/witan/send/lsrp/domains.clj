@@ -1,5 +1,7 @@
 (ns witan.send.lsrp.domains
-  (:require [clojure.string :as s]))
+  (:require [clojure.string :as s]
+            [clojure.set :as set]
+            [witan.send.adroddiad.ncy :as ncy]))
 
 ;; Calendar years
 
@@ -12,23 +14,37 @@
 
 ;; Age Groups
 
-(defn inclusive-range [beginning end]
-  (range beginning (inc end)))
+(def ncys
+  "Set of national curriculum years (NCY), coded numerically, with
+  reception as NCY 0 and earlier NCYs as negative integers.
+  This corresponds to the age someone turns in the school year."
+  (into (sorted-set) (inclusive-range -5 20)))
 
-(def under-5
-  (into (sorted-set) (inclusive-range -5 1)))
+(def ncy->age-of-birthday-in-school-year
+  (apply sorted-map (interleave ncys (map #(+ % 5) ncys))))
+
+(def age-of-birthday-in-school-year->ncy
+  (into (sorted-map) (set/map-invert ncy->age-of-birthday-in-school-year)))
+
+(def under-5-by-ncy
+  (into (sorted-set) (#'ncy/inclusive-range (age-of-birthday-in-school-year->ncy 0)
+                                            (age-of-birthday-in-school-year->ncy 4))))
 
 (def age-5-10
-  (into (sorted-set) (inclusive-range 0 5)))
+  (into (sorted-set) (#'ncy/inclusive-range (age-of-birthday-in-school-year->ncy 5)
+                                            (age-of-birthday-in-school-year->ncy 10))))
 
 (def age-11-15
-  (into (sorted-set) (inclusive-range 6 10)))
+  (into (sorted-set) (#'ncy/inclusive-range (age-of-birthday-in-school-year->ncy 11)
+                                            (age-of-birthday-in-school-year->ncy 15))))
 
 (def age-16-19
-  (into (sorted-set) (inclusive-range 11 14)))
+  (into (sorted-set) (#'ncy/inclusive-range (age-of-birthday-in-school-year->ncy 16)
+                                            (age-of-birthday-in-school-year->ncy 19))))
 
 (def age-20-25
-  (into (sorted-set) (inclusive-range 15 20)))
+  (into (sorted-set) (#'ncy/inclusive-range (age-of-birthday-in-school-year->ncy 20)
+                                            (age-of-birthday-in-school-year->ncy 25))))
 
 (defn lsrp-age-group [y]
   (cond
