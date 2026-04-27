@@ -75,6 +75,10 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
       (tc/map-columns $ :age-group [:academic-year]
                       (fn [ncy] (dom/lsrp-age-group-names
                                  (dom/lsrp-age-group ncy))))
@@ -99,6 +103,10 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
       (tc/select-rows $ #(#{"Y"} (:setting %)))
       (tc/map-columns $ :age-group [:academic-year]
                       (fn [ncy] (dom/lsrp-age-group-names
@@ -132,6 +140,10 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
       (tc/map-columns $ :provision [:setting :academic-year]
                       (fn [setting ncy] (setting->provision-fn setting ncy)))
       (tc/group-by $ numerator-grouping-keys)
@@ -165,6 +177,10 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
       (tc/map-columns $ :need [:need]
                       (fn [need] (need->lsrp-need-fn need)))
       (tc/group-by $ numerator-grouping-keys)
@@ -200,6 +216,10 @@
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
       (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
       (tc/map-columns $ :provision [:setting :academic-year]
                       (fn [setting ncy] (setting->lsrp-provision-need-category-fn setting ncy)))
       (tc/select-rows $ #(provision (:provision %)))
