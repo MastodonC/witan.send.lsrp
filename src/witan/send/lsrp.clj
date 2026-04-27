@@ -3,6 +3,7 @@
             [witan.send.adroddiad.transitions :as tr]
             [witan.send :as ws]
             [witan.send.lsrp.domains :as dom]
+            [kixi.large :as large]
             [tablecloth.api :as tc]
             [ham-fisted.reduce :as hf-reduce]
             [tech.v3.datatype.functional :as dfn]
@@ -445,6 +446,25 @@
    :12.0 (-> (assoc assessment-projection :transform-simulation-f transform-successful-ehcna-simulation)
              age-group-summaries
              format-12)})
+
+(defn output! [lsrp file-path]
+  (let [sheet-spec (mapv #(let [n (-> % val tc/dataset-name (s/split #" ") first)]
+                            (assoc {}
+                                   ::large/sheet-name n
+                                   ::large/data (val %)
+                                   :order (read-string n))) lsrp)]
+    (as-> sheet-spec $
+      (concat $ [{::large/sheet-name "Index"
+                  ::large/data (-> {"Sheet Name"   (map #(-> % ::large/sheet-name) $)
+                                    "Dataset Name" (map #(-> % ::large/data tc/dataset-name) $)
+                                    "Order"        (map :order $)}
+                                   tc/dataset
+                                   (tc/order-by "Order")
+                                   (tc/drop-columns "Order"))
+                  :order 0.0}])
+      (sort-by :order $)
+      (large/create-workbook $)
+      (large/save-workbook! $ file-path))))
 
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
