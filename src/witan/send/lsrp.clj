@@ -376,8 +376,9 @@
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
                                  setting->lsrp-provision-need-category-fn] :as projection}
-                         {:keys [config-path sim-prefix transitions-path] :as request-projection}]
-  {:5.1 (-> projection
+                         {:keys [config-path sim-prefix transitions-path] :as request-projection}
+                         {:keys [config-path sim-prefix transitions-path] :as assessment-projection}]
+  {:5.1 (-> (assoc projection :transform-simulation-f transform-age-group-simulation)
             age-group-summaries
             format-5-1)
    :6.0 (-> projection
@@ -407,7 +408,9 @@
    :7.7 (-> projection
             post-16-need-summaries
             format-7-7)
-   :10.0 (-> request-projection
+   :10.0 (-> (assoc request-projection :transform-simulation-f transform-age-group-simulation)
+             age-group-summaries
+             format-10)
              age-group-summaries
              format-10)})
 
