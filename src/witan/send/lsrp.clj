@@ -88,7 +88,29 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn age-group-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn transform-successful-ehcna-simulation
+  [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count]}]
+  (let [census (-> (tc/concat-copying historic-transitions-count sim)
+                   (tr/transitions->census))
+        denominator (-> census
+                        (tc/group-by denominator-grouping-keys)
+                        (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
+    (as-> census $
+      (tc/select-rows $ #(#{"Y"} (:setting %)))
+      (tc/map-columns $ :age-group [:academic-year]
+                      (fn [ncy] (dom/lsrp-age-group-names
+                                 (dom/lsrp-age-group ncy))))
+      (tc/group-by $ numerator-grouping-keys)
+      (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
+      (tc/group-by $ :age-group {:result-type :as-seq})
+      (map #(td/add-diff % :transition-count) $)
+      (apply tc/concat $)
+      (tc/rename-columns $
+                         {:diff :ehcp-diff
+                          :pct-diff :ehcp-pct-diff})
+      (tc/inner-join $ denominator denominator-grouping-keys)
+      (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
+      (tc/order-by $ numerator-grouping-keys))))
 
 (defn age-group-summaries [{:keys [config-path sim-prefix transitions-path transform-simulation-f]}]
   (summarise (read-simulation-data config-path sim-prefix)
@@ -376,6 +398,9 @@
 (defn format-11 [summary]
   (format-age-group-output summary "11. Current and projected number of all EHC Needs Assessments by CYP age"))
 
+(defn format-12 [summary]
+  (format-age-group-output summary "12. Current and projected number of all EHCNAs that result in an EHCP"))
+
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
                                  setting->lsrp-provision-need-category-fn] :as projection}
@@ -417,8 +442,9 @@
    :11.0 (-> (assoc assessment-projection :transform-simulation-f transform-age-group-simulation)
              age-group-summaries
              format-11)
+   :12.0 (-> (assoc assessment-projection :transform-simulation-f transform-successful-ehcna-simulation)
              age-group-summaries
-             format-10)})
+             format-12)})
 
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
