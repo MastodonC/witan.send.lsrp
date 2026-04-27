@@ -284,7 +284,7 @@
                              :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
                              :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn format-5-1 [summary]
+(defn format-age-group-output [summary ds-name]
   (-> summary
       (tc/select-columns [:calendar-year :age-group :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
@@ -297,7 +297,10 @@
                                         (vals dom/lsrp-age-group-names)
                                         (range 1 (+ 1 (count dom/lsrp-age-group-names))))) :age-group)])
       (tc/rename-columns {:age-group "Calendar Year"})
-      (tc/set-dataset-name "5.1 Total number of EHC plans by age group (with estimated future projections)")))
+      (tc/set-dataset-name ds-name)))
+
+(defn format-5-1 [summary]
+  (format-age-group-output summary "5.1 Total number of EHC plans by age group (with estimated future projections)"))
 
 (defn format-6 [summary]
   (-> summary
