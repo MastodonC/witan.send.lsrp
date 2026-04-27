@@ -373,6 +373,9 @@
 (defn format-10 [summary]
   (format-age-group-output summary "10. Current and projected number of all EHCNA requests by CYP age"))
 
+(defn format-11 [summary]
+  (format-age-group-output summary "11. Current and projected number of all EHC Needs Assessments by CYP age"))
+
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
                                  setting->lsrp-provision-need-category-fn] :as projection}
@@ -411,6 +414,9 @@
    :10.0 (-> (assoc request-projection :transform-simulation-f transform-age-group-simulation)
              age-group-summaries
              format-10)
+   :11.0 (-> (assoc assessment-projection :transform-simulation-f transform-age-group-simulation)
+             age-group-summaries
+             format-11)
              age-group-summaries
              format-10)})
 
