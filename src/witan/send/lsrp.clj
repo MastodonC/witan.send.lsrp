@@ -3,6 +3,7 @@
             [witan.send.adroddiad.transitions :as tr]
             [witan.send :as ws]
             [witan.send.lsrp.domains :as dom]
+            [witan.send.lsrp.assumptions :as ass]
             [kixi.large :as large]
             [tablecloth.api :as tc]
             [ham-fisted.reduce :as hf-reduce]
@@ -486,7 +487,10 @@
                                    tc/dataset
                                    (tc/order-by "Order")
                                    (tc/drop-columns "Order"))
-                  :order 0.0}])
+                  :order 0.0}
+                 {::large/sheet-name "Assumptions"
+                  ::large/data ass/assumptions
+                  :order (-> $ count inc)}])
       (sort-by :order $)
       (large/create-workbook $)
       (large/save-workbook! $ file-path))))
