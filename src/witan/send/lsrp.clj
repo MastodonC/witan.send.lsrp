@@ -481,6 +481,9 @@
                                    ::large/data (val %)
                                    :order (read-string n))) lsrp)]
     (as-> sheet-spec $
+      (concat $ [{::large/sheet-name "Assumptions"
+                  ::large/data assumptions
+                  :order (-> $ count inc)}])
       (concat $ [{::large/sheet-name "Index"
                   ::large/data (-> {"Sheet Name"   (map #(-> % ::large/sheet-name) $)
                                     "Dataset Name" (map #(-> % ::large/data tc/dataset-name) $)
@@ -488,10 +491,7 @@
                                    tc/dataset
                                    (tc/order-by "Order")
                                    (tc/drop-columns "Order"))
-                  :order 0.0}
-                 {::large/sheet-name "Assumptions"
-                  ::large/data assumptions
-                  :order (-> $ count inc)}])
+                  :order 0.0}])
       (sort-by :order $)
       (large/create-workbook $)
       (large/save-workbook! $ file-path))))
