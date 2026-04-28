@@ -473,7 +473,8 @@
              age-group-summaries
              format-12)})
 
-(defn output! [lsrp file-path]
+(defn output! [{:keys [lsrp file-path assumptions]
+                :or {assumptions ass/assumptions}}]
   (let [sheet-spec (mapv #(let [n (-> % val tc/dataset-name (s/split #" ") first)]
                             (assoc {}
                                    ::large/sheet-name n
@@ -489,7 +490,7 @@
                                    (tc/drop-columns "Order"))
                   :order 0.0}
                  {::large/sheet-name "Assumptions"
-                  ::large/data ass/assumptions
+                  ::large/data assumptions
                   :order (-> $ count inc)}])
       (sort-by :order $)
       (large/create-workbook $)
