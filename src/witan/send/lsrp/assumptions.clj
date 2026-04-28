@@ -117,3 +117,8 @@
        projection-assumptions
        non-specific-assumptions
        non-specific-age-related-assumptions))
+
+;; TODO
+;; combine into map with number of section as key and def'd strings as vals
+;; this way new assumptions strings can be assoc'd to the map and this can
+;; all be output to a spreadsheet as with the data
