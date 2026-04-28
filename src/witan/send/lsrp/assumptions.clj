@@ -39,7 +39,7 @@
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-by-provision-assumptions
   (str "6.
    - Those \"not in education\" but still holding an EHCP (NEET, NIEO or NIEC) are included in \"Other (including hospital schools where applicable)\""
-       support-base-assumptions
+       support-&-specialist-base-assumptions
        non-maintained-&-indepedent-school-assumptions
        non-specific-ehcp-projection-assumptions))
 
@@ -58,13 +58,13 @@
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Mainstream-Schools-or-Academies-including-Support-Bases-by-primary-need
   (str "7.2\n"
-       support-base-assumptions
+       support-&-specialist-base-assumptions
        non-specific-ehcp-projections-by-primary-need-assumptions
        non-specific-ehcp-projection-assumptions))
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Specialist-Bases-by-primary-need
   (str "7.3\n"
-       support-base-assumptions
+       support-&-specialist-base-assumptions
        non-specific-ehcp-projections-by-primary-need-assumptions
        non-specific-ehcp-projection-assumptions))
 
