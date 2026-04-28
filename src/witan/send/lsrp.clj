@@ -497,9 +497,11 @@
       (large/save-workbook! $ file-path))))
 
 ;; ## Requirements
-;; - Projection, including the prefix
-;; - Historic transitions file
+;; - Config for an EHCP projection, an EHCNA request projection and an EHCNA projection
+;; - Prefixes of each projection
+;; - Historic transitions file, relevant to each projection
 ;; ## Optional
 ;; - Map of LA settings to LSRP provision
 ;; - Map of LA Primary Needs to LSRP Primary Needs
-;; - unique ID (often person table ID) and assessment outcome from SEN2 assessment dataset
+;; - Alternative map of LA settings to LSRP provision for the \"by need\" tables
+;; - Alternative map of assumptions by dataset
