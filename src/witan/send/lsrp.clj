@@ -3,6 +3,7 @@
             [witan.send.adroddiad.transitions :as tr]
             [witan.send :as ws]
             [witan.send.lsrp.domains :as dom]
+            [witan.send.lsrp.assumptions :as ass]
             [kixi.large :as large]
             [tablecloth.api :as tc]
             [ham-fisted.reduce :as hf-reduce]
@@ -472,13 +473,17 @@
              age-group-summaries
              format-12)})
 
-(defn output! [lsrp file-path]
+(defn output! [{:keys [lsrp file-path assumptions]
+                :or {assumptions ass/assumptions}}]
   (let [sheet-spec (mapv #(let [n (-> % val tc/dataset-name (s/split #" ") first)]
                             (assoc {}
                                    ::large/sheet-name n
                                    ::large/data (val %)
                                    :order (read-string n))) lsrp)]
     (as-> sheet-spec $
+      (concat $ [{::large/sheet-name "Assumptions"
+                  ::large/data assumptions
+                  :order (-> $ count inc)}])
       (concat $ [{::large/sheet-name "Index"
                   ::large/data (-> {"Sheet Name"   (map #(-> % ::large/sheet-name) $)
                                     "Dataset Name" (map #(-> % ::large/data tc/dataset-name) $)
@@ -490,18 +495,14 @@
       (sort-by :order $)
       (large/create-workbook $)
       (large/save-workbook! $ file-path))))
-
-;; Assumptions:
-;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
-;; - Census counts and projections are based on the Spring school census date according to that calendar year, typically falling on the third Thursday of January
-;; - We are making the assumption that the \"actual number for 2025 calendar year\" refers to the total count of EHCPs at the end of said calendar year (i.e. the January census date for the next calendar year), thus we must produce counts corrseponding to the calendar year minus one
-;;  - Projections are modelled using the historic transition rates of need/setting/NCY combinations derived from SEN2 returns and the background EHCP-eligible population (0-25 year olds), derived from the ONS subnational population projections and mid-year estimates, as a means of calculating the rate of new EHCPs
-
+;; Note: Assumptions tab in output spreadsheet requires opening and the cell width adjusting for the line breaks to be recognised
 
 ;; ## Requirements
-;; - Projection, including the prefix
-;; - Historic transitions file
+;; - Config for an EHCP projection, an EHCNA request projection and an EHCNA projection
+;; - Prefixes of each projection
+;; - Historic transitions file, relevant to each projection
 ;; ## Optional
 ;; - Map of LA settings to LSRP provision
 ;; - Map of LA Primary Needs to LSRP Primary Needs
-;; - unique ID (often person table ID) and assessment outcome from SEN2 assessment dataset
+;; - Alternative map of LA settings to LSRP provision for the \"by need\" tables
+;; - Alternative map of assumptions by dataset
