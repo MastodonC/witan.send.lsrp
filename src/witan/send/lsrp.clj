@@ -3,6 +3,7 @@
             [witan.send.adroddiad.transitions :as tr]
             [witan.send :as ws]
             [witan.send.lsrp.domains :as dom]
+            [kixi.large :as large]
             [tablecloth.api :as tc]
             [ham-fisted.reduce :as hf-reduce]
             [tech.v3.datatype.functional :as dfn]
@@ -73,6 +74,11 @@
                         (tc/group-by denominator-grouping-keys)
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
+      (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
       (tc/map-columns $ :age-group [:academic-year]
                       (fn [ncy] (dom/lsrp-age-group-names
                                  (dom/lsrp-age-group ncy))))
@@ -88,12 +94,41 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn age-group-summaries [{:keys [config-path sim-prefix transitions-path]}]
+(defn transform-successful-ehcna-simulation
+  [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count]}]
+  (let [census (-> (tc/concat-copying historic-transitions-count sim)
+                   (tr/transitions->census))
+        denominator (-> census
+                        (tc/group-by denominator-grouping-keys)
+                        (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
+    (as-> census $
+      (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
+      (tc/select-rows $ #(#{"Y"} (:setting %)))
+      (tc/map-columns $ :age-group [:academic-year]
+                      (fn [ncy] (dom/lsrp-age-group-names
+                                 (dom/lsrp-age-group ncy))))
+      (tc/group-by $ numerator-grouping-keys)
+      (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
+      (tc/group-by $ :age-group {:result-type :as-seq})
+      (map #(td/add-diff % :transition-count) $)
+      (apply tc/concat $)
+      (tc/rename-columns $
+                         {:diff :ehcp-diff
+                          :pct-diff :ehcp-pct-diff})
+      (tc/inner-join $ denominator denominator-grouping-keys)
+      (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
+      (tc/order-by $ numerator-grouping-keys))))
+
+(defn age-group-summaries [{:keys [config-path sim-prefix transitions-path transform-simulation-f]}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :age-group
               :historic-transitions-count (historic-transition-counts transitions-path)
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
-              :transform-simulation-f transform-age-group-simulation}))
+              :transform-simulation-f transform-simulation-f}))
 
 (defn transform-provision-simulation
   [sim {:keys [numerator-grouping-keys denominator-grouping-keys
@@ -104,6 +139,11 @@
                         (tc/group-by denominator-grouping-keys)
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
+      (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
       (tc/map-columns $ :provision [:setting :academic-year]
                       (fn [setting ncy] (setting->provision-fn setting ncy)))
       (tc/group-by $ numerator-grouping-keys)
@@ -136,6 +176,11 @@
                         (tc/group-by denominator-grouping-keys)
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
+      (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
       (tc/map-columns $ :need [:need]
                       (fn [need] (need->lsrp-need-fn need)))
       (tc/group-by $ numerator-grouping-keys)
@@ -170,6 +215,11 @@
                         (tc/group-by denominator-grouping-keys)
                         (tc/aggregate {:denominator #(dfn/sum (:transition-count %))}))]
     (as-> census $
+      (tc/map-columns $ :calendar-year dec)
+      ;; LSRP count by calendar year refers to total EHCPs within a year
+      ;; thus the Jan census date in calendar year _n_ is a snapshot of
+      ;; everything that happened since calednary year _n_-1, hence
+      ;; the `dec`
       (tc/map-columns $ :provision [:setting :academic-year]
                       (fn [setting ncy] (setting->lsrp-provision-need-category-fn setting ncy)))
       (tc/select-rows $ #(provision (:provision %)))
@@ -284,7 +334,7 @@
                              :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
                              :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn format-5-1 [summary]
+(defn format-age-group-output [summary ds-name]
   (-> summary
       (tc/select-columns [:calendar-year :age-group :median])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
@@ -297,7 +347,10 @@
                                         (vals dom/lsrp-age-group-names)
                                         (range 1 (+ 1 (count dom/lsrp-age-group-names))))) :age-group)])
       (tc/rename-columns {:age-group "Calendar Year"})
-      (tc/set-dataset-name "5.1 Total number of EHC plans by age group (with estimated future projections)")))
+      (tc/set-dataset-name ds-name)))
+
+(defn format-5-1 [summary]
+  (format-age-group-output summary "5.1 Total number of EHC plans by age group (with estimated future projections)"))
 
 (defn format-6 [summary]
   (-> summary
@@ -365,39 +418,78 @@
 (defn format-7-7 [summary]
   (format-7-n summary "7.7 Current and projected number of all CYP with EHC plans in Post-16 (Further Education or Specialist Further Education) Settings by primary need"))
 
+(defn format-10 [summary]
+  (format-age-group-output summary "10. Current and projected number of all EHCNA requests by CYP age"))
+
+(defn format-11 [summary]
+  (format-age-group-output summary "11. Current and projected number of all EHC Needs Assessments by CYP age"))
+
+(defn format-12 [summary]
+  (format-age-group-output summary "12. Current and projected number of all EHCNAs that result in an EHCP"))
+
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
-                                 setting->lsrp-provision-need-category-fn] :as baseline}]
-  {:5.1 (-> baseline
+                                 setting->lsrp-provision-need-category-fn] :as projection}
+                         {:keys [config-path sim-prefix transitions-path] :as request-projection}
+                         {:keys [config-path sim-prefix transitions-path] :as assessment-projection}]
+  {:5.1 (-> (assoc projection :transform-simulation-f transform-age-group-simulation)
             age-group-summaries
             format-5-1)
-   :6.0 (-> baseline
+   :6.0 (-> projection
             provision-summaries
             format-6)
-   :7.0 (-> baseline
+   :7.0 (-> projection
             need-summaries
             format-7)
-   :7.1 (-> baseline
+   :7.1 (-> projection
             early-years-need-summaries
             format-7-1)
-   :7.2 (-> baseline
+   :7.2 (-> projection
             mainstream-need-summaries
             format-7-2)
-   :7.3 (-> baseline
+   :7.3 (-> projection
             specialist-bases-need-summaries
             format-7-3)
-   :7.4 (-> baseline
+   :7.4 (-> projection
             maintained-special-need-summaries
             format-7-4)
-   :7.5 (-> baseline
+   :7.5 (-> projection
             nmss-or-independent-schools-need-summaries
             format-7-5)
-   :7.6 (-> baseline
+   :7.6 (-> projection
             ap-or-hospital-schools-need-summaries
             format-7-6)
-   :7.7 (-> baseline
+   :7.7 (-> projection
             post-16-need-summaries
-            format-7-7)})
+            format-7-7)
+   :10.0 (-> (assoc request-projection :transform-simulation-f transform-age-group-simulation)
+             age-group-summaries
+             format-10)
+   :11.0 (-> (assoc assessment-projection :transform-simulation-f transform-age-group-simulation)
+             age-group-summaries
+             format-11)
+   :12.0 (-> (assoc assessment-projection :transform-simulation-f transform-successful-ehcna-simulation)
+             age-group-summaries
+             format-12)})
+
+(defn output! [lsrp file-path]
+  (let [sheet-spec (mapv #(let [n (-> % val tc/dataset-name (s/split #" ") first)]
+                            (assoc {}
+                                   ::large/sheet-name n
+                                   ::large/data (val %)
+                                   :order (read-string n))) lsrp)]
+    (as-> sheet-spec $
+      (concat $ [{::large/sheet-name "Index"
+                  ::large/data (-> {"Sheet Name"   (map #(-> % ::large/sheet-name) $)
+                                    "Dataset Name" (map #(-> % ::large/data tc/dataset-name) $)
+                                    "Order"        (map :order $)}
+                                   tc/dataset
+                                   (tc/order-by "Order")
+                                   (tc/drop-columns "Order"))
+                  :order 0.0}])
+      (sort-by :order $)
+      (large/create-workbook $)
+      (large/save-workbook! $ file-path))))
 
 ;; Assumptions:
 ;; - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the total median
