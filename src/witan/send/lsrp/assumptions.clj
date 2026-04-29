@@ -127,27 +127,25 @@
        non-specific-assumptions
        non-specific-age-related-assumptions))
 
-(def assumptions
-  (as-> {"5.1" Total-number-of-EHC-plans-by-age-group-with-estimated-future-projections-assumptions
-         "6.0" Current-and-projected-number-of-all-CYP-with-EHC-plans-by-provision-assumptions
-         "7.0" Current-and-projected-number-of-all-CYP-with-EHC-plans-by-primary-need-assumptions
-         "7.1" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Early-Years-Settings-including-PVIs-by-primary-need-assumptions
-         "7.2" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Mainstream-Schools-or-Academies-including-Support-Bases-by-primary-need
-         "7.3" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Specialist-Bases-by-primary-need
-         "7.4" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Maintained-Special-Schools-or-Special-Academies-by-primary-need
-         "7.5" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Non-Maintained-Special-Schools-or-Independent-Schools-by-primary-need
-         "7.6" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Alternative-Provision-or-Hospital-Schools-by-primary-need
-         "7.7" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Post-16-Further-Education-or-Specialist-Further-Education-Settings-by-primary-need
-         "10.0" Current-and-projected-number-of-all-EHCNA-requests-by-CYP-age
-         "11.0" Current-and-projected-number-of-all-EHC-Needs-Assessments-by-CYP-age
-         "12.0" Current-and-projected-number-of-all-EHCNAs-that-result-in-an-EHCP} $
+(def assumptions-map
+  {"5.1" Total-number-of-EHC-plans-by-age-group-with-estimated-future-projections-assumptions
+   "6.0" Current-and-projected-number-of-all-CYP-with-EHC-plans-by-provision-assumptions
+   "7.0" Current-and-projected-number-of-all-CYP-with-EHC-plans-by-primary-need-assumptions
+   "7.1" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Early-Years-Settings-including-PVIs-by-primary-need-assumptions
+   "7.2" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Mainstream-Schools-or-Academies-including-Support-Bases-by-primary-need
+   "7.3" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Specialist-Bases-by-primary-need
+   "7.4" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Maintained-Special-Schools-or-Special-Academies-by-primary-need
+   "7.5" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Non-Maintained-Special-Schools-or-Independent-Schools-by-primary-need
+   "7.6" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Alternative-Provision-or-Hospital-Schools-by-primary-need
+   "7.7" Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Post-16-Further-Education-or-Specialist-Further-Education-Settings-by-primary-need
+   "10.0" Current-and-projected-number-of-all-EHCNA-requests-by-CYP-age
+   "11.0" Current-and-projected-number-of-all-EHC-Needs-Assessments-by-CYP-age
+   "12.0" Current-and-projected-number-of-all-EHCNAs-that-result-in-an-EHCP})
+
+(defn format-assumptions [assumptions-map]
+  (as-> assumptions-map $
     (map (fn [[k v]](assoc {}
                            "Section" (read-string k)
                            "Assumption" v)) $)
     (tc/dataset $ {:dataset-name "Assumptions"})
     (tc/order-by $ "Section")))
-
-;; TODO
-;; combine into map with number of section as key and def'd strings as vals
-;; this way new assumptions strings can be assoc'd to the map and this can
-;; all be output to a spreadsheet as with the data
