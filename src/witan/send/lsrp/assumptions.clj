@@ -14,7 +14,7 @@
 (def non-specific-ehcp-projection-assumptions
   (str "
  - Census counts and projections are based on the Spring school census date according to that calendar year, typically falling on the third Thursday of January
- - Projections are modelled using the historic transition rates of need/setting/NCY combinations derived from SEN2 returns, and the background EHCP-eligible population (0-25 year olds), derived from the ONS subnational population projections and mid-year estimates, as a means of calculating the rate of new EHCPs
+ - EHCPs are modelled as a rate of EHCPs by need/setting/NCY against the background EHCP-eligible population (0-25) by age. The background population is derived from the ONS subnational population projections and mid-year estimates
  - Simulations are not explicitly capped by capacity, however constraints that may have influenced recent placement choices will in turn effect the models transition rates"
        non-specific-assumptions
        projection-assumptions))
@@ -35,7 +35,7 @@
 
 (def support-&-specialist-base-assumptions
   (str "
- - Evidence of a CYP being placed at a Support base (where places are funded and commissioned by settings/multi-academy trusts) are typically not specifically recorded, as they are not funded or commissioned by the LA. In this case a CYP will be recorded as attending a \"Mainstream school or academy\"
+ - Evidence of a CYP being placed at a Support base (where places are funded and commissioned by settings/multi-academy trusts) are typically not recorded, as they are not funded or commissioned by the LA. In this case a CYP will be recorded as attending a \"Mainstream school or academy\"
  - Due to Mainstream Post 16 specialist provision, Post 16 CYPs at a Specialist base are not included in counts by \"Specialist bases in mainstream settings\""
        mainstream-post-16-specialist-provision-assumptions))
 
@@ -103,7 +103,7 @@
 (def Current-and-projected-number-of-all-EHCNA-requests-by-CYP-age
   (str "10.
  - Counts and projections consist of all request between Spring school census dates
- - Projections are modelled using the historic transition rates of no request to EHCNA request based on NCY derived from SEN2 returns, and the background EHCP-eligible population (0-25 year olds), derived from the ONS subnational population projections and mid-year estimates, as a means of calculating the rate of new requests
+ - EHCNA requests are modelled as a rate of EHCNA requests by NCY against the background EHCP-eligible population (0-25) by age. The background population is derived from the ONS subnational population projections and mid-year estimates
  - EHCNA requests are counted in spite of their outcome; whether they did or did not move to an assessment, or the request was ceased/withdrawn"
        projection-assumptions
        non-specific-assumptions
@@ -112,7 +112,7 @@
 (def Current-and-projected-number-of-all-EHC-Needs-Assessments-by-CYP-age
   (str "11.
  - Counts and projections consist of all needs assessments between Spring school census dates
- - Projections are modelled using the historic transition rates of no assessment to a EHC Need Assessment based on NCY derived from SEN2 returns, and the background EHCP-eligible population (0-25 year olds), derived from the ONS subnational population projections and mid-year estimates, as a means of calculating the rate of new assessments
+ - EHCNAs are modelled as a rate of EHCNAs by NCY against the background EHCP-eligible population (0-25) by age. The background population is derived from the ONS subnational population projections and mid-year estimates
  - EHCNAs are counted in spite of their outcome; whether they did or did not result in a plan, or were ceased/withdrawn"
        projection-assumptions
        non-specific-assumptions
@@ -121,7 +121,7 @@
 (def Current-and-projected-number-of-all-EHCNAs-that-result-in-an-EHCP
   (str "12.
  - Counts and projections consist of all needs assessments resulting in an EHCP between Spring school census dates
- - Projections are modelled using the historic transition rates of an assessment to an approval of a plan based on NCY derived from SEN2 returns, and the background EHCP-eligible population (0-25 year olds), derived from the ONS subnational population projections and mid-year estimates, as a means of calculating the rate of new plans from an assessments
+ - EHCNAs that become EHCPs are modelled as a rate of EHCNA to EHCP by NCY against the background EHCP-eligible population (0-25) by age. The background population is derived from the ONS subnational population projections and mid-year estimates
  - EHCNAs are counted by positive outcome"
        projection-assumptions
        non-specific-assumptions
