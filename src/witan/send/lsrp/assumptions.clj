@@ -8,7 +8,7 @@
 (def projection-assumptions
   "
  - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the median of the total
- - A \"baseline\" projection assumes \"all things remain the same\" in terms of rates of transition rates - joiners, leavers, movers and stayers
+ - A \"baseline\" projection assumes \"all things remain the same\" in terms of rates of transition rates - new EHCPs, ceased EHCPs, movers and stayers
  - No future plans or interventions are factored in to these projections")
 
 (def non-specific-ehcp-projection-assumptions
