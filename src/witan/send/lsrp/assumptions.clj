@@ -2,23 +2,27 @@
   (:require [tablecloth.api :as tc]))
 
 (def non-specific-assumptions
-  "- It is understood that the \"actual number for 2025 calendar year\" refers to the total count of EHCPs at the end of said calendar year i.e. the January census date for the next calendar year")
+  "
+ - It is understood that the \"actual number for 2025 calendar year\" refers to the total count of EHCPs at the end of said calendar year i.e. the January census date for the next calendar year")
 
 (def projection-assumptions
-  "- Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the median of the total
-   - A \"baseline\" projection assumes \"all things remain the same\" in terms of rates of transition rates - joiners, leavers, movers and stayers
-   - No future plans or interventions are factored in to these projections")
+  "
+ - Projected values are the median of 1000 simulations, as such a summing of median values will not result in the same value as the median of the total
+ - A \"baseline\" projection assumes \"all things remain the same\" in terms of rates of transition rates - joiners, leavers, movers and stayers
+ - No future plans or interventions are factored in to these projections")
 
 (def non-specific-ehcp-projection-assumptions
-  (str "- Census counts and projections are based on the Spring school census date according to that calendar year, typically falling on the third Thursday of January
-   - Projections are modelled using the historic transition rates of need/setting/NCY combinations derived from SEN2 returns, and the background EHCP-eligible population (0-25 year olds), derived from the ONS subnational population projections and mid-year estimates, as a means of calculating the rate of new EHCPs
-   - Simulations are not explicitly capped by capacity, however constraints that may have influenced recent placement choices will in turn effect the models transition rates"
+  (str "
+ - Census counts and projections are based on the Spring school census date according to that calendar year, typically falling on the third Thursday of January
+ - Projections are modelled using the historic transition rates of need/setting/NCY combinations derived from SEN2 returns, and the background EHCP-eligible population (0-25 year olds), derived from the ONS subnational population projections and mid-year estimates, as a means of calculating the rate of new EHCPs
+ - Simulations are not explicitly capped by capacity, however constraints that may have influenced recent placement choices will in turn effect the models transition rates"
        non-specific-assumptions
        projection-assumptions))
 
 (def non-specific-age-related-assumptions
-  "- Due to protective PII measures a CYP's National Curriculum Year is calculated based on their age according to their birth month/year as of August preceding the school year
-   - The age group a CYP falls in calculated by the age they turn according to the NCY they're currently in")
+  "
+ - Due to protective PII measures a CYP's National Curriculum Year is calculated based on their age according to their birth month/year as of August preceding the school year
+ - The age group a CYP falls in calculated by the age they turn according to the NCY they're currently in")
 
 (def Total-number-of-EHC-plans-by-age-group-with-estimated-future-projections-assumptions
   (str "5.1"
@@ -26,62 +30,66 @@
        non-specific-ehcp-projection-assumptions))
 
 (def mainstream-post-16-specialist-provision-assumptions
-  "- It is understood that Mainstream Post 16 specialist provision refers to a placement at specialist base within a mainstream setting with post 16 facilities (GFE, Sixth Form, etc.) where a CYP at post 16 age (16-25 years old)")
+  "
+ - It is understood that Mainstream Post 16 specialist provision refers to a placement at specialist base within a mainstream setting with post 16 facilities (GFE, Sixth Form, etc.) where a CYP at post 16 age (16-25 years old)")
 
 (def support-&-specialist-base-assumptions
-  (str "- Evidence of a CYP being placed at a Support base (where places are funded and commissioned by settings/multi-academy trusts) are typically not specifically recorded, as they are not funded or commissioned by the LA. In this case a CYP will be recorded as attending a \"Mainstream school or academy\"
-   - Due to Mainstream Post 16 specialist provision, Post 16 CYPs at a Specialist base are not included in counts by \"Specialist bases in mainstream settings\""
+  (str "
+ - Evidence of a CYP being placed at a Support base (where places are funded and commissioned by settings/multi-academy trusts) are typically not specifically recorded, as they are not funded or commissioned by the LA. In this case a CYP will be recorded as attending a \"Mainstream school or academy\"
+ - Due to Mainstream Post 16 specialist provision, Post 16 CYPs at a Specialist base are not included in counts by \"Specialist bases in mainstream settings\""
        mainstream-post-16-specialist-provision-assumptions))
 
 (def non-maintained-&-indepedent-school-assumptions
-  "- It is understood that within Non-Maintained Special School and Independent Schools should be included Special and non-special Indepedent schools")
+  "
+ - It is understood that within Non-Maintained Special School and Independent Schools should be included Special and non-special Indepedent schools")
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-by-provision-assumptions
   (str "6.
-   - Those \"not in education\" but still holding an EHCP (NEET, NIEO or NIEC) are included in \"Other (including hospital schools where applicable)\""
+ - Those \"not in education\" but still holding an EHCP (NEET, NIEO or NIEC) are included in \"Other (including hospital schools where applicable)\""
        support-&-specialist-base-assumptions
        non-maintained-&-indepedent-school-assumptions
        non-specific-ehcp-projection-assumptions))
 
 (def non-specific-ehcp-projections-by-primary-need-assumptions
-  "- Section 7 asks for \"number of all CYP with EHC plans\", no SEN Support. As such \"SEN support but no specialist assessment of type of need\" as a Primary Need has been calculated as 0")
+  "
+ - Section 7 asks for \"number of all CYP with EHC plans\", no SEN Support. As such \"SEN support but no specialist assessment of type of need\" as a Primary Need has been calculated as 0")
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-by-primary-need-assumptions
-  (str "7.\n"
+  (str "7."
        non-specific-ehcp-projections-by-primary-need-assumptions
        non-specific-ehcp-projection-assumptions))
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Early-Years-Settings-including-PVIs-by-primary-need-assumptions
-  (str "7.1\n"
+  (str "7.1"
        non-specific-ehcp-projections-by-primary-need-assumptions
        non-specific-ehcp-projection-assumptions))
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Mainstream-Schools-or-Academies-including-Support-Bases-by-primary-need
-  (str "7.2\n"
+  (str "7.2"
        support-&-specialist-base-assumptions
        non-specific-ehcp-projections-by-primary-need-assumptions
        non-specific-ehcp-projection-assumptions))
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Specialist-Bases-by-primary-need
-  (str "7.3\n"
+  (str "7.3"
        support-&-specialist-base-assumptions
        non-specific-ehcp-projections-by-primary-need-assumptions
        non-specific-ehcp-projection-assumptions))
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Maintained-Special-Schools-or-Special-Academies-by-primary-need
-  (str "7.4\n"
+  (str "7.4"
        non-specific-ehcp-projections-by-primary-need-assumptions
        non-specific-ehcp-projection-assumptions))
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Non-Maintained-Special-Schools-or-Independent-Schools-by-primary-need
-  (str "7.5\n"
+  (str "7.5"
        non-maintained-&-indepedent-school-assumptions
        non-specific-ehcp-projections-by-primary-need-assumptions
        non-specific-ehcp-projection-assumptions))
 
 (def Current-and-projected-number-of-all-CYP-with-EHC-plans-in-Alternative-Provision-or-Hospital-Schools-by-primary-need
   (str "7.6
-- Note that Hospital Schools are here counted together with Alternative Provision, however in section 6 Hospital Schools are counted with \"Other (including hospital schools where applicable)\""
+ - Note that Hospital Schools are here counted together with Alternative Provision, however in section 6 Hospital Schools are counted with \"Other (including hospital schools where applicable)\""
        non-specific-ehcp-projections-by-primary-need-assumptions
        non-specific-ehcp-projection-assumptions))
 
