@@ -495,6 +495,7 @@
       (sort-by :order $)
       (large/create-workbook $)
       (large/save-workbook! $ file-path))))
+;; Note: Assumptions tab in output spreadsheet requires opening and the cell width adjusting for the line breaks to be recognised
 
 ;; ## Requirements
 ;; - Config for an EHCP projection, an EHCNA request projection and an EHCNA projection
