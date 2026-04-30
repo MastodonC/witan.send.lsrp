@@ -439,53 +439,56 @@
                                  age-group-rule] :as projection}
                          {:keys [config-path sim-prefix transitions-path] :as request-projection}
                          {:keys [config-path sim-prefix transitions-path] :as assessment-projection}]
-  {:5.1 (-> (assoc projection
-                   :transform-simulation-f transform-age-group-simulation
-                   :age-group-rule age-group-rule)
-            age-group-summaries
-            format-5-1)
-   :6.0 (-> projection
-            provision-summaries
-            format-6)
-   :7.0 (-> projection
-            need-summaries
-            format-7)
-   :7.1 (-> projection
-            early-years-need-summaries
-            format-7-1)
-   :7.2 (-> projection
-            mainstream-need-summaries
-            format-7-2)
-   :7.3 (-> projection
-            specialist-bases-need-summaries
-            format-7-3)
-   :7.4 (-> projection
-            maintained-special-need-summaries
-            format-7-4)
-   :7.5 (-> projection
-            nmss-or-independent-schools-need-summaries
-            format-7-5)
-   :7.6 (-> projection
-            ap-or-hospital-schools-need-summaries
-            format-7-6)
-   :7.7 (-> projection
-            post-16-need-summaries
-            format-7-7)
-   :10.0 (-> (assoc request-projection
-                    :transform-simulation-f transform-age-group-simulation
-                    :age-group-rule age-group-rule)
-             age-group-summaries
-             format-10)
-   :11.0 (-> (assoc assessment-projection
-                    :transform-simulation-f transform-age-group-simulation
-                    :age-group-rule age-group-rule)
-             age-group-summaries
-             format-11)
-   :12.0 (-> (assoc assessment-projection
-                    :transform-simulation-f transform-successful-ehcna-simulation
-                    :age-group-rule age-group-rule)
-             age-group-summaries
-             format-12)})
+  (let [age-group-rule (if age-group-rule
+                         age-group-rule
+                         dom/age-of-birthday-in-school-year->ncy)]
+    {:5.1 (-> (assoc projection
+                     :transform-simulation-f transform-age-group-simulation
+                     :age-group-rule age-group-rule)
+              age-group-summaries
+              format-5-1)
+     :6.0 (-> projection
+              provision-summaries
+              format-6)
+     :7.0 (-> projection
+              need-summaries
+              format-7)
+     :7.1 (-> projection
+              early-years-need-summaries
+              format-7-1)
+     :7.2 (-> projection
+              mainstream-need-summaries
+              format-7-2)
+     :7.3 (-> projection
+              specialist-bases-need-summaries
+              format-7-3)
+     :7.4 (-> projection
+              maintained-special-need-summaries
+              format-7-4)
+     :7.5 (-> projection
+              nmss-or-independent-schools-need-summaries
+              format-7-5)
+     :7.6 (-> projection
+              ap-or-hospital-schools-need-summaries
+              format-7-6)
+     :7.7 (-> projection
+              post-16-need-summaries
+              format-7-7)
+     :10.0 (-> (assoc request-projection
+                      :transform-simulation-f transform-age-group-simulation
+                      :age-group-rule age-group-rule)
+               age-group-summaries
+               format-10)
+     :11.0 (-> (assoc assessment-projection
+                      :transform-simulation-f transform-age-group-simulation
+                      :age-group-rule age-group-rule)
+               age-group-summaries
+               format-11)
+     :12.0 (-> (assoc assessment-projection
+                      :transform-simulation-f transform-successful-ehcna-simulation
+                      :age-group-rule age-group-rule)
+               age-group-summaries
+               format-12)}))
 
 (defn output! [{:keys [lsrp file-path assumptions-map]
                 :or {assumptions-map ass/assumptions-map}}]
