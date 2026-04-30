@@ -68,7 +68,8 @@
         (tc/separate-column :transition-count-summary :infer identity))))
 
 (defn transform-age-group-simulation
-  [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count]}]
+  [sim {:keys [numerator-grouping-keys denominator-grouping-keys
+               historic-transitions-count age-group-rule]}]
   (let [census (-> (tc/concat-copying historic-transitions-count sim)
                    (tr/transitions->census))
         denominator (-> census
@@ -82,7 +83,7 @@
       ;; the `dec`
       (tc/map-columns $ :age-group [:academic-year]
                       (fn [ncy] (dom/lsrp-age-group-names
-                                 (dom/lsrp-age-group ncy))))
+                                 (dom/lsrp-age-group ncy age-group-rule))))
       (tc/group-by $ numerator-grouping-keys)
       (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
       (tc/group-by $ :age-group {:result-type :as-seq})
@@ -96,7 +97,8 @@
       (tc/order-by $ numerator-grouping-keys))))
 
 (defn transform-successful-ehcna-simulation
-  [sim {:keys [numerator-grouping-keys denominator-grouping-keys historic-transitions-count]}]
+  [sim {:keys [numerator-grouping-keys denominator-grouping-keys
+               historic-transitions-count age-group-rule]}]
   (let [census (-> (tc/concat-copying historic-transitions-count sim)
                    (tr/transitions->census))
         denominator (-> census
@@ -111,7 +113,7 @@
       (tc/select-rows $ #(#{"Y"} (:setting %)))
       (tc/map-columns $ :age-group [:academic-year]
                       (fn [ncy] (dom/lsrp-age-group-names
-                                 (dom/lsrp-age-group ncy))))
+                                 (dom/lsrp-age-group ncy age-group-rule))))
       (tc/group-by $ numerator-grouping-keys)
       (tc/aggregate $ {:transition-count #(dfn/sum (:transition-count %))})
       (tc/group-by $ :age-group {:result-type :as-seq})
@@ -124,12 +126,15 @@
       (tc/map-columns $ :pct-ehcps [:transition-count :denominator] #(dfn// %1 %2))
       (tc/order-by $ numerator-grouping-keys))))
 
-(defn age-group-summaries [{:keys [config-path sim-prefix transitions-path transform-simulation-f]}]
+(defn age-group-summaries [{:keys [config-path sim-prefix transitions-path
+                                   transform-simulation-f age-group-rule]
+                            :or {age-group-rule dom/age-of-birthday-in-school-year->ncy}}]
   (summarise (read-simulation-data config-path sim-prefix)
              {:domain-key :age-group
               :historic-transitions-count (historic-transition-counts transitions-path)
               :simulation-count (get-in (ws/read-config config-path) [:projection-parameters :simulations])
-              :transform-simulation-f transform-simulation-f}))
+              :transform-simulation-f transform-simulation-f
+              :age-group-rule age-group-rule}))
 
 (defn transform-provision-simulation
   [sim {:keys [numerator-grouping-keys denominator-grouping-keys
@@ -430,10 +435,13 @@
 
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
-                                 setting->lsrp-provision-need-category-fn] :as projection}
+                                 setting->lsrp-provision-need-category-fn
+                                 age-group-rule] :as projection}
                          {:keys [config-path sim-prefix transitions-path] :as request-projection}
                          {:keys [config-path sim-prefix transitions-path] :as assessment-projection}]
-  {:5.1 (-> (assoc projection :transform-simulation-f transform-age-group-simulation)
+  {:5.1 (-> (assoc projection
+                   :transform-simulation-f transform-age-group-simulation
+                   :age-group-rule age-group-rule)
             age-group-summaries
             format-5-1)
    :6.0 (-> projection
@@ -463,13 +471,19 @@
    :7.7 (-> projection
             post-16-need-summaries
             format-7-7)
-   :10.0 (-> (assoc request-projection :transform-simulation-f transform-age-group-simulation)
+   :10.0 (-> (assoc request-projection
+                    :transform-simulation-f transform-age-group-simulation
+                    :age-group-rule age-group-rule)
              age-group-summaries
              format-10)
-   :11.0 (-> (assoc assessment-projection :transform-simulation-f transform-age-group-simulation)
+   :11.0 (-> (assoc assessment-projection
+                    :transform-simulation-f transform-age-group-simulation
+                    :age-group-rule age-group-rule)
              age-group-summaries
              format-11)
-   :12.0 (-> (assoc assessment-projection :transform-simulation-f transform-successful-ehcna-simulation)
+   :12.0 (-> (assoc assessment-projection
+                    :transform-simulation-f transform-successful-ehcna-simulation
+                    :age-group-rule age-group-rule)
              age-group-summaries
              format-12)})
 
