@@ -473,9 +473,10 @@
              age-group-summaries
              format-12)})
 
-(defn output! [{:keys [lsrp file-path assumptions]
-                :or {assumptions ass/assumptions}}]
-  (let [sheet-spec (mapv #(let [n (-> % val tc/dataset-name (s/split #" ") first)]
+(defn output! [{:keys [lsrp file-path assumptions-map]
+                :or {assumptions-map ass/assumptions-map}}]
+  (let [assumptions (ass/format-assumptions assumptions-map)
+        sheet-spec (mapv #(let [n (-> % val tc/dataset-name (s/split #" ") first)]
                             (assoc {}
                                    ::large/sheet-name n
                                    ::large/data (val %)
