@@ -29,33 +29,32 @@
 (def age-of-birthday-in-school-year->ncy
   (into (sorted-map) (set/map-invert ncy->age-of-birthday-in-school-year)))
 
-(def under-5
-  (into (sorted-set) (inclusive-range (age-of-birthday-in-school-year->ncy 0)
-                                      (age-of-birthday-in-school-year->ncy 4))))
+(defn age-group [lower upper age-group-rule]
+  (into (sorted-set) (inclusive-range (age-group-rule lower)
+                                      (age-group-rule upper))))
 
-(def age-5-10
-  (into (sorted-set) (inclusive-range (age-of-birthday-in-school-year->ncy 5)
-                                      (age-of-birthday-in-school-year->ncy 10))))
+(defn under-5 [age-group-rule]
+  (age-group 0 4 age-group-rule))
 
-(def age-11-15
-  (into (sorted-set) (inclusive-range (age-of-birthday-in-school-year->ncy 11)
-                                      (age-of-birthday-in-school-year->ncy 15))))
+(defn age-5-10 [age-group-rule]
+  (age-group 5 10 age-group-rule))
 
-(def age-16-19
-  (into (sorted-set) (inclusive-range (age-of-birthday-in-school-year->ncy 16)
-                                      (age-of-birthday-in-school-year->ncy 19))))
+(defn age-11-15 [age-group-rule]
+  (age-group 11 15 age-group-rule))
 
-(def age-20-25
-  (into (sorted-set) (inclusive-range (age-of-birthday-in-school-year->ncy 20)
-                                      (age-of-birthday-in-school-year->ncy 25))))
+(defn age-16-19 [age-group-rule]
+  (age-group 16 19 age-group-rule))
 
-(defn lsrp-age-group [y]
+(defn age-20-25 [age-group-rule]
+  (age-group 20 25 age-group-rule))
+
+(defn lsrp-age-group [y age-group-rule]
   (cond
-    (under-5 y)   :under-5
-    (age-5-10 y)  :age-5-10
-    (age-11-15 y) :age-11-15
-    (age-16-19 y) :age-16-19
-    (age-20-25 y) :age-20-25
+    ((under-5 age-group-rule) y)   :under-5
+    ((age-5-10 age-group-rule) y)  :age-5-10
+    ((age-11-15 age-group-rule) y) :age-11-15
+    ((age-16-19 age-group-rule) y) :age-16-19
+    ((age-20-25 age-group-rule) y) :age-20-25
     :else :outside-of-send-age))
 
 (def lsrp-age-group-names
