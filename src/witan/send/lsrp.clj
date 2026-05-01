@@ -340,12 +340,12 @@
                              :setting->lsrp-provision-need-category-fn setting->lsrp-provision-need-category-fn
                              :need->lsrp-need-fn need->lsrp-need-fn}))
 
-(defn format-age-group-output [summary ds-name]
+(defn format-age-group-output [summary ds-name summary-statistic]
   (-> summary
-      (tc/select-columns [:calendar-year :age-group :median])
+      (tc/select-columns [:calendar-year :age-group summary-statistic])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
       (tc/map-columns :calendar-year str)
-      (tc/pivot->wider :calendar-year :median)
+      (tc/pivot->wider :calendar-year summary-statistic)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds (vals dom/lsrp-age-group-names) :age-group))
       (tc/unique-by :age-group)
@@ -355,15 +355,17 @@
       (tc/rename-columns {:age-group "Calendar Year"})
       (tc/set-dataset-name ds-name)))
 
-(defn format-5-1 [summary]
-  (format-age-group-output summary "5.1 Total number of EHC plans by age group (with estimated future projections)"))
+(defn format-5-1 [summary summary-statistic]
+  (format-age-group-output summary
+                           "5.1 Total number of EHC plans by age group (with estimated future projections)"
+                           summary-statistic))
 
-(defn format-6 [summary]
+(defn format-6 [summary summary-statistic]
   (-> summary
-      (tc/select-columns [:calendar-year :provision :median])
+      (tc/select-columns [:calendar-year :provision summary-statistic])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
       (tc/map-columns :calendar-year str)
-      (tc/pivot->wider :calendar-year :median)
+      (tc/pivot->wider :calendar-year summary-statistic)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds dom/lsrp-provision :provision))
       (tc/unique-by :provision)
@@ -373,12 +375,12 @@
       (tc/rename-columns {:provision "Calendar Year"})
       (tc/set-dataset-name "6. Current and projected number of all CYP with EHC plans by provision")))
 
-(defn format-7 [summary]
+(defn format-7 [summary summary-statistic]
   (-> summary
-      (tc/select-columns [:calendar-year :need :median])
+      (tc/select-columns [:calendar-year :need summary-statistic])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
       (tc/map-columns :calendar-year str)
-      (tc/pivot->wider :calendar-year :median)
+      (tc/pivot->wider :calendar-year summary-statistic)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds dom/lsrp-needs :need))
       (tc/unique-by :need)
@@ -388,12 +390,12 @@
       (tc/rename-columns {:need "Calendar Year"})
       (tc/set-dataset-name "7. Current and projected number of all CYP with EHC plans by primary need")))
 
-(defn format-7-n [summary ds-name]
+(defn format-7-n [summary ds-name summary-statistic]
   (-> summary
-      (tc/select-columns [:calendar-year :need :median])
+      (tc/select-columns [:calendar-year :need summary-statistic])
       (tc/select-rows #(dom/lsrp-calendar-years (:calendar-year %)))
       (tc/map-columns :calendar-year str)
-      (tc/pivot->wider :calendar-year :median)
+      (tc/pivot->wider :calendar-year summary-statistic)
       (tc/replace-missing :all :value 0.0)
       (tc/union (->empty-ds dom/lsrp-needs :need))
       (tc/unique-by :need)
@@ -403,92 +405,97 @@
       (tc/rename-columns {:need "Calendar Year"})
       (tc/set-dataset-name ds-name)))
 
-(defn format-7-1 [summary]
-  (format-7-n summary "7.1 Current and projected number of all CYP with EHC plans in Early Years Settings including PVIs by primary need"))
+(defn format-7-1 [summary summary-statistic]
+  (format-7-n summary "7.1 Current and projected number of all CYP with EHC plans in Early Years Settings including PVIs by primary need" summary-statistic))
 
-(defn format-7-2 [summary]
-  (format-7-n summary "7.2 Current and projected number of all CYP with EHC plans in Mainstream Schools or Academies (including Support Bases) by primary need"))
+(defn format-7-2 [summary summary-statistic]
+  (format-7-n summary "7.2 Current and projected number of all CYP with EHC plans in Mainstream Schools or Academies (including Support Bases) by primary need" summary-statistic))
 
-(defn format-7-3 [summary]
-  (format-7-n summary "7.3 Current and projected number of all CYP with EHC plans in Specialist Bases by primary need"))
+(defn format-7-3 [summary summary-statistic]
+  (format-7-n summary "7.3 Current and projected number of all CYP with EHC plans in Specialist Bases by primary need" summary-statistic))
 
-(defn format-7-4 [summary]
-  (format-7-n summary "7.4 Current and projected number of all CYP with EHC plans in Maintained Special Schools or Special Academies by primary need"))
+(defn format-7-4 [summary summary-statistic]
+  (format-7-n summary "7.4 Current and projected number of all CYP with EHC plans in Maintained Special Schools or Special Academies by primary need" summary-statistic))
 
-(defn format-7-5 [summary]
-  (format-7-n summary "7.5 Current and projected number of all CYP with EHC plans in Non-Maintained Special Schools or Independent Schools by primary need"))
+(defn format-7-5 [summary summary-statistic]
+  (format-7-n summary "7.5 Current and projected number of all CYP with EHC plans in Non-Maintained Special Schools or Independent Schools by primary need" summary-statistic))
 
-(defn format-7-6 [summary]
-  (format-7-n summary "7.6 Current and projected number of all CYP with EHC plans in Alternative Provision or Hospital Schools by primary need"))
+(defn format-7-6 [summary summary-statistic]
+  (format-7-n summary "7.6 Current and projected number of all CYP with EHC plans in Alternative Provision or Hospital Schools by primary need" summary-statistic))
 
-(defn format-7-7 [summary]
-  (format-7-n summary "7.7 Current and projected number of all CYP with EHC plans in Post-16 (Further Education or Specialist Further Education) Settings by primary need"))
+(defn format-7-7 [summary summary-statistic]
+  (format-7-n summary "7.7 Current and projected number of all CYP with EHC plans in Post-16 (Further Education or Specialist Further Education) Settings by primary need" summary-statistic))
 
-(defn format-10 [summary]
-  (format-age-group-output summary "10. Current and projected number of all EHCNA requests by CYP age"))
+(defn format-10 [summary summary-statistic]
+  (format-age-group-output summary "10. Current and projected number of all EHCNA requests by CYP age" summary-statistic))
 
-(defn format-11 [summary]
-  (format-age-group-output summary "11. Current and projected number of all EHC Needs Assessments by CYP age"))
+(defn format-11 [summary summary-statistic]
+  (format-age-group-output summary "11. Current and projected number of all EHC Needs Assessments by CYP age" summary-statistic))
 
-(defn format-12 [summary]
-  (format-age-group-output summary "12. Current and projected number of all EHCNAs that result in an EHCP"))
+(defn format-12 [summary summary-statistic]
+  (format-age-group-output summary "12. Current and projected number of all EHCNAs that result in an EHCP" summary-statistic))
 
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
                                  setting->lsrp-provision-need-category-fn
-                                 age-group-rule] :as projection}
-                         {:keys [config-path sim-prefix transitions-path] :as request-projection}
-                         {:keys [config-path sim-prefix transitions-path] :as assessment-projection}]
+                                 age-group-rule summary-statistic] :as projection}
+                         {:keys [config-path sim-prefix transitions-path
+                                 summary-statistic] :as request-projection}
+                         {:keys [config-path sim-prefix transitions-path
+                                 summary-statistic] :as assessment-projection}]
   (let [age-group-rule (if age-group-rule
                          age-group-rule
-                         dom/age-of-birthday-in-school-year->ncy)]
+                         dom/age-of-birthday-in-school-year->ncy)
+        summary-statistic (if summary-statistic
+                            summary-statistic
+                            :median)]
     {:5.1 (-> (assoc projection
                      :transform-simulation-f transform-age-group-simulation
                      :age-group-rule age-group-rule)
               age-group-summaries
-              format-5-1)
+              (format-5-1 summary-statistic))
      :6.0 (-> projection
               provision-summaries
-              format-6)
+              (format-6 summary-statistic))
      :7.0 (-> projection
               need-summaries
-              format-7)
+              (format-7 summary-statistic))
      :7.1 (-> projection
               early-years-need-summaries
-              format-7-1)
+              (format-7-1 summary-statistic))
      :7.2 (-> projection
               mainstream-need-summaries
-              format-7-2)
+              (format-7-2 summary-statistic))
      :7.3 (-> projection
               specialist-bases-need-summaries
-              format-7-3)
+              (format-7-3 summary-statistic))
      :7.4 (-> projection
               maintained-special-need-summaries
-              format-7-4)
+              (format-7-4 summary-statistic))
      :7.5 (-> projection
               nmss-or-independent-schools-need-summaries
-              format-7-5)
+              (format-7-5 summary-statistic))
      :7.6 (-> projection
               ap-or-hospital-schools-need-summaries
-              format-7-6)
+              (format-7-6 summary-statistic))
      :7.7 (-> projection
               post-16-need-summaries
-              format-7-7)
+              (format-7-7 summary-statistic))
      :10.0 (-> (assoc request-projection
                       :transform-simulation-f transform-age-group-simulation
                       :age-group-rule age-group-rule)
                age-group-summaries
-               format-10)
+               (format-10 summary-statistic))
      :11.0 (-> (assoc assessment-projection
                       :transform-simulation-f transform-age-group-simulation
                       :age-group-rule age-group-rule)
                age-group-summaries
-               format-11)
+               (format-11 summary-statistic))
      :12.0 (-> (assoc assessment-projection
                       :transform-simulation-f transform-successful-ehcna-simulation
                       :age-group-rule age-group-rule)
                age-group-summaries
-               format-12)}))
+               (format-12 summary-statistic))}))
 
 (defn output! [{:keys [lsrp file-path assumptions-map]
                 :or {assumptions-map ass/assumptions-map}}]
