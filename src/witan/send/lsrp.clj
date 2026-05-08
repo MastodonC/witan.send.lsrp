@@ -438,7 +438,7 @@
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
                                  setting->lsrp-provision-need-category-fn
-                                 age-group-rule summary-statistic] :as projection}
+                                 age-group-rule summary-statistic] :as ehcp-projection}
                          {:keys [config-path sim-prefix transitions-path
                                  summary-statistic] :as request-projection}
                          {:keys [config-path sim-prefix transitions-path
@@ -449,36 +449,36 @@
         summary-statistic (if summary-statistic
                             summary-statistic
                             :median)]
-    {:5.1 (-> (assoc projection
+    {:5.1 (-> (assoc ehcp-projection
                      :transform-simulation-f transform-age-group-simulation
                      :age-group-rule age-group-rule)
               age-group-summaries
               (format-5-1 summary-statistic))
-     :6.0 (-> projection
+     :6.0 (-> ehcp-projection
               provision-summaries
               (format-6 summary-statistic))
-     :7.0 (-> projection
+     :7.0 (-> ehcp-projection
               need-summaries
               (format-7 summary-statistic))
-     :7.1 (-> projection
+     :7.1 (-> ehcp-projection
               early-years-need-summaries
               (format-7-1 summary-statistic))
-     :7.2 (-> projection
+     :7.2 (-> ehcp-projection
               mainstream-need-summaries
               (format-7-2 summary-statistic))
-     :7.3 (-> projection
+     :7.3 (-> ehcp-projection
               specialist-bases-need-summaries
               (format-7-3 summary-statistic))
-     :7.4 (-> projection
+     :7.4 (-> ehcp-projection
               maintained-special-need-summaries
               (format-7-4 summary-statistic))
-     :7.5 (-> projection
+     :7.5 (-> ehcp-projection
               nmss-or-independent-schools-need-summaries
               (format-7-5 summary-statistic))
-     :7.6 (-> projection
+     :7.6 (-> ehcp-projection
               ap-or-hospital-schools-need-summaries
               (format-7-6 summary-statistic))
-     :7.7 (-> projection
+     :7.7 (-> ehcp-projection
               post-16-need-summaries
               (format-7-7 summary-statistic))
      :10.0 (-> (assoc request-projection
