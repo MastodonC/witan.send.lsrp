@@ -435,6 +435,11 @@
 (defn format-12 [summary summary-statistic]
   (format-age-group-output summary "12. Current and projected number of all EHCNAs that result in an EHCP" summary-statistic))
 
+(defn training-years [transitions-path]
+  (let [historic-transitions (historic-transition-counts transitions-path)]
+    [(apply min (:calendar-year historic-transitions))
+     (apply max (:calendar-year-2 historic-transitions))]))
+
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
                                  setting->lsrp-provision-need-category-fn
@@ -495,7 +500,8 @@
                       :transform-simulation-f transform-successful-ehcna-simulation
                       :age-group-rule age-group-rule)
                age-group-summaries
-               (format-12 summary-statistic))}))
+               (format-12 summary-statistic))
+     :training-years (training-years (:transitions-path ehcp-projection))}))
 
 (defn output! [{:keys [lsrp file-path assumptions-map]
                 :or {assumptions-map ass/assumptions-map}}]
@@ -504,7 +510,7 @@
                             (assoc {}
                                    ::large/sheet-name n
                                    ::large/data (val %)
-                                   :order (read-string n))) lsrp)]
+                                   :order (read-string n))) (dissoc lsrp :training-years))]
     (as-> sheet-spec $
       (concat $ [{::large/sheet-name "Assumptions"
                   ::large/data assumptions
