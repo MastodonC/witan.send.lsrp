@@ -505,7 +505,7 @@
 
 (defn output! [{:keys [lsrp file-path assumptions-map]
                 :or {assumptions-map ass/assumptions-map}}]
-  (let [assumptions (ass/format-assumptions assumptions-map)
+  (let [assumptions (ass/format-assumptions assumptions-map (:training-years lsrp))
         sheet-spec (mapv #(let [n (-> % val tc/dataset-name (s/split #" ") first)]
                             (assoc {}
                                    ::large/sheet-name n

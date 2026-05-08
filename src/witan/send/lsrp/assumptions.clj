@@ -127,6 +127,10 @@
        non-specific-assumptions
        non-specific-age-related-assumptions))
 
+(defn trained-on-str [training-years]
+  (str "
+ - Projections are trained on data from calendar years " (nth training-years 0) " to " (nth training-years 1)))
+
 (def assumptions-map
   {"5.1" Total-number-of-EHC-plans-by-age-group-with-estimated-future-projections-assumptions
    "6.0" Current-and-projected-number-of-all-CYP-with-EHC-plans-by-provision-assumptions
@@ -142,10 +146,10 @@
    "11.0" Current-and-projected-number-of-all-EHC-Needs-Assessments-by-CYP-age
    "12.0" Current-and-projected-number-of-all-EHCNAs-that-result-in-an-EHCP})
 
-(defn format-assumptions [assumptions-map]
+(defn format-assumptions [assumptions-map training-years]
   (as-> assumptions-map $
-    (map (fn [[k v]](assoc {}
-                           "Section" (read-string k)
-                           "Assumption" v)) $)
+    (map (fn [[k v]] (assoc {}
+                            "Section" (read-string k)
+                            "Assumption" (str v (trained-on-str training-years)))) $)
     (tc/dataset $ {:dataset-name "Assumptions"})
     (tc/order-by $ "Section")))
