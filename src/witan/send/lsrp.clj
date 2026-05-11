@@ -435,10 +435,15 @@
 (defn format-12 [summary summary-statistic]
   (format-age-group-output summary "12. Current and projected number of all EHCNAs that result in an EHCP" summary-statistic))
 
+(defn training-years [transitions-path]
+  (let [historic-transitions (historic-transition-counts transitions-path)]
+    [(apply min (:calendar-year historic-transitions))
+     (apply max (:calendar-year-2 historic-transitions))]))
+
 (defn format-all-tables [{:keys [config-path sim-prefix transitions-path
                                  setting->provision-fn need->lsrp-need-fn
                                  setting->lsrp-provision-need-category-fn
-                                 age-group-rule summary-statistic] :as projection}
+                                 age-group-rule summary-statistic] :as ehcp-projection}
                          {:keys [config-path sim-prefix transitions-path
                                  summary-statistic] :as request-projection}
                          {:keys [config-path sim-prefix transitions-path
@@ -449,36 +454,36 @@
         summary-statistic (if summary-statistic
                             summary-statistic
                             :median)]
-    {:5.1 (-> (assoc projection
+    {:5.1 (-> (assoc ehcp-projection
                      :transform-simulation-f transform-age-group-simulation
                      :age-group-rule age-group-rule)
               age-group-summaries
               (format-5-1 summary-statistic))
-     :6.0 (-> projection
+     :6.0 (-> ehcp-projection
               provision-summaries
               (format-6 summary-statistic))
-     :7.0 (-> projection
+     :7.0 (-> ehcp-projection
               need-summaries
               (format-7 summary-statistic))
-     :7.1 (-> projection
+     :7.1 (-> ehcp-projection
               early-years-need-summaries
               (format-7-1 summary-statistic))
-     :7.2 (-> projection
+     :7.2 (-> ehcp-projection
               mainstream-need-summaries
               (format-7-2 summary-statistic))
-     :7.3 (-> projection
+     :7.3 (-> ehcp-projection
               specialist-bases-need-summaries
               (format-7-3 summary-statistic))
-     :7.4 (-> projection
+     :7.4 (-> ehcp-projection
               maintained-special-need-summaries
               (format-7-4 summary-statistic))
-     :7.5 (-> projection
+     :7.5 (-> ehcp-projection
               nmss-or-independent-schools-need-summaries
               (format-7-5 summary-statistic))
-     :7.6 (-> projection
+     :7.6 (-> ehcp-projection
               ap-or-hospital-schools-need-summaries
               (format-7-6 summary-statistic))
-     :7.7 (-> projection
+     :7.7 (-> ehcp-projection
               post-16-need-summaries
               (format-7-7 summary-statistic))
      :10.0 (-> (assoc request-projection
@@ -495,16 +500,17 @@
                       :transform-simulation-f transform-successful-ehcna-simulation
                       :age-group-rule age-group-rule)
                age-group-summaries
-               (format-12 summary-statistic))}))
+               (format-12 summary-statistic))
+     :training-years (training-years (:transitions-path ehcp-projection))}))
 
 (defn output! [{:keys [lsrp file-path assumptions-map]
                 :or {assumptions-map ass/assumptions-map}}]
-  (let [assumptions (ass/format-assumptions assumptions-map)
+  (let [assumptions (ass/format-assumptions assumptions-map (:training-years lsrp))
         sheet-spec (mapv #(let [n (-> % val tc/dataset-name (s/split #" ") first)]
                             (assoc {}
                                    ::large/sheet-name n
                                    ::large/data (val %)
-                                   :order (read-string n))) lsrp)]
+                                   :order (read-string n))) (dissoc lsrp :training-years))]
     (as-> sheet-spec $
       (concat $ [{::large/sheet-name "Assumptions"
                   ::large/data assumptions
