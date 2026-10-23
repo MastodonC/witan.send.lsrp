@@ -160,4 +160,5 @@
    "SPLD" "Specific Learning Difficulty"
    "VI" "Visual Impairment"
    "OTH" "Other Difficulty/Disability"
+   "DS" "Other Difficulty/Disability"
    nil "SEN support but no specialist assessment of type of need"})
